@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.2.3
+- Rotation messages (C3/C4 contract): `RotateRequest` (with `validate`), `RotationAccepted`, `RotationPending`, `RotationDrained`, `RotationCommit`, `Loss`; `RotateReason`, `LossKind`, `LossRange`; `spec/rotation.md`; schema and vectors. Additive (variants join a `#[non_exhaustive]` enum).
+
 ## 0.2.2
 - README: state that the layout is unfrozen.
 

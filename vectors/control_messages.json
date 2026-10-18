@@ -123,6 +123,118 @@
           "file_id": 3
         }
       }
+    },
+    {
+      "name": "rotate request resize",
+      "json": {
+        "type": "RotateRequest",
+        "data": {
+          "request_id": "q1",
+          "service_id": "svc-1",
+          "reason": "RESIZE",
+          "new_size": 1048576
+        }
+      }
+    },
+    {
+      "name": "rotate request revocation",
+      "json": {
+        "type": "RotateRequest",
+        "data": {
+          "request_id": "q2",
+          "service_id": "svc-1",
+          "reason": "REVOCATION",
+          "revoke_client_id": "c-9"
+        }
+      }
+    },
+    {
+      "name": "rotation accepted",
+      "json": {
+        "type": "RotationAccepted",
+        "data": {
+          "request_id": "q1",
+          "rotation_id": "rot-1"
+        }
+      }
+    },
+    {
+      "name": "rotation pending",
+      "json": {
+        "type": "RotationPending",
+        "data": {
+          "rotation_id": "rot-1",
+          "service_id": "svc-1",
+          "file_id": 3,
+          "deadline_ms": 5000
+        }
+      }
+    },
+    {
+      "name": "rotation drained",
+      "json": {
+        "type": "RotationDrained",
+        "data": {
+          "request_id": "q3",
+          "rotation_id": "rot-1",
+          "file_id": 3,
+          "seq": 42
+        }
+      }
+    },
+    {
+      "name": "rotation commit resize",
+      "json": {
+        "type": "RotationCommit",
+        "data": {
+          "rotation_id": "rot-1",
+          "service_id": "svc-1",
+          "reason": "RESIZE",
+          "old_file_id": 3,
+          "new_file_id": 4,
+          "generation": 1,
+          "size": 1048576
+        }
+      }
+    },
+    {
+      "name": "loss straggler",
+      "json": {
+        "type": "Loss",
+        "data": {
+          "service_id": "svc-1",
+          "file_id": 3,
+          "kind": "ROTATION_STRAGGLER"
+        }
+      }
+    },
+    {
+      "name": "loss resync overwrote with ranges",
+      "json": {
+        "type": "Loss",
+        "data": {
+          "service_id": "svc-1",
+          "file_id": 3,
+          "kind": "RESYNC_OVERWROTE",
+          "ranges": [
+            {
+              "offset": 4096,
+              "len": 16
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "loss revoked",
+      "json": {
+        "type": "Loss",
+        "data": {
+          "service_id": "svc-1",
+          "file_id": 3,
+          "kind": "REVOKED"
+        }
+      }
     }
   ],
   "invalid": [
@@ -217,6 +329,116 @@
         "type": "GetServiceFilePath",
         "data": {
           "request_id": "r5"
+        }
+      }
+    },
+    {
+      "name": "rotate request with unknown reason",
+      "json": {
+        "type": "RotateRequest",
+        "data": {
+          "request_id": "q1",
+          "service_id": "svc-1",
+          "reason": "resize",
+          "new_size": 4096
+        }
+      }
+    },
+    {
+      "name": "rotation commit without generation",
+      "json": {
+        "type": "RotationCommit",
+        "data": {
+          "rotation_id": "rot-1",
+          "service_id": "svc-1",
+          "reason": "RESIZE",
+          "old_file_id": 3,
+          "new_file_id": 4,
+          "size": 1048576
+        }
+      }
+    },
+    {
+      "name": "loss with unknown kind",
+      "json": {
+        "type": "Loss",
+        "data": {
+          "service_id": "svc-1",
+          "file_id": 3,
+          "kind": "LOST"
+        }
+      }
+    },
+    {
+      "name": "rotation drained without seq",
+      "json": {
+        "type": "RotationDrained",
+        "data": {
+          "request_id": "q3",
+          "rotation_id": "rot-1",
+          "file_id": 3
+        }
+      }
+    }
+  ],
+  "inconsistent_rotate_requests": [
+    {
+      "name": "resize without new_size",
+      "json": {
+        "type": "RotateRequest",
+        "data": {
+          "request_id": "q1",
+          "service_id": "svc-1",
+          "reason": "RESIZE"
+        }
+      }
+    },
+    {
+      "name": "resize with zero new_size",
+      "json": {
+        "type": "RotateRequest",
+        "data": {
+          "request_id": "q1",
+          "service_id": "svc-1",
+          "reason": "RESIZE",
+          "new_size": 0
+        }
+      }
+    },
+    {
+      "name": "resize naming a client",
+      "json": {
+        "type": "RotateRequest",
+        "data": {
+          "request_id": "q1",
+          "service_id": "svc-1",
+          "reason": "RESIZE",
+          "new_size": 4096,
+          "revoke_client_id": "c-9"
+        }
+      }
+    },
+    {
+      "name": "revocation without client",
+      "json": {
+        "type": "RotateRequest",
+        "data": {
+          "request_id": "q2",
+          "service_id": "svc-1",
+          "reason": "REVOCATION"
+        }
+      }
+    },
+    {
+      "name": "revocation with new_size",
+      "json": {
+        "type": "RotateRequest",
+        "data": {
+          "request_id": "q2",
+          "service_id": "svc-1",
+          "reason": "REVOCATION",
+          "revoke_client_id": "c-9",
+          "new_size": 4096
         }
       }
     }
