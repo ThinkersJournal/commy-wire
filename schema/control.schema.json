@@ -491,6 +491,126 @@
       }
     },
     {
+      "properties": {
+        "type": {
+          "const": "RangesChanged"
+        },
+        "data": {
+          "type": "object",
+          "required": [
+            "request_id",
+            "file_id",
+            "ranges"
+          ],
+          "properties": {
+            "request_id": {
+              "type": "string"
+            },
+            "file_id": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4294967295
+            },
+            "ranges": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "offset",
+                  "len"
+                ],
+                "properties": {
+                  "offset": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "len": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "RangesUpdated"
+        },
+        "data": {
+          "type": "object",
+          "required": [
+            "file_id",
+            "seq",
+            "ranges"
+          ],
+          "properties": {
+            "file_id": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4294967295
+            },
+            "seq": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "ranges": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "offset",
+                  "len"
+                ],
+                "properties": {
+                  "offset": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "len": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "FlushEnd"
+        },
+        "data": {
+          "type": "object",
+          "required": [
+            "request_id",
+            "file_id"
+          ],
+          "properties": {
+            "request_id": {
+              "type": "string"
+            },
+            "file_id": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4294967295
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    {
       "$ref": "error.schema.json"
     }
   ],

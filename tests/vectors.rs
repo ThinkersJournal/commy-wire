@@ -222,3 +222,38 @@ fn an_unknown_loss_kind_parses_as_unknown_and_means_whole_file() {
         );
     }
 }
+
+#[test]
+fn inconsistent_range_lists_parse_but_fail_validation() {
+    let v = load("control_messages.json");
+    let cases = v["inconsistent_ranges"].as_array().unwrap();
+    assert!(!cases.is_empty());
+    for c in cases {
+        let name = c["name"].as_str().unwrap();
+        let msg: ControlMessage = serde_json::from_value(c["json"].clone())
+            .unwrap_or_else(|e| panic!("{name} must parse: {e}"));
+        let ranges = match &msg {
+            ControlMessage::RangesChanged(m) => &m.ranges,
+            ControlMessage::RangesUpdated(m) => &m.ranges,
+            _ => panic!("{name}: not a range message"),
+        };
+        assert!(commy_wire::validate_ranges(ranges).is_err(), "{name}");
+    }
+}
+
+#[test]
+fn valid_range_lists_pass_validation() {
+    let v = load("control_messages.json");
+    let mut checked = 0;
+    for c in v["valid"].as_array().unwrap() {
+        let msg: ControlMessage = serde_json::from_value(c["json"].clone()).unwrap();
+        let ranges = match &msg {
+            ControlMessage::RangesChanged(m) => &m.ranges,
+            ControlMessage::RangesUpdated(m) => &m.ranges,
+            _ => continue,
+        };
+        assert!(commy_wire::validate_ranges(ranges).is_ok(), "{}", c["name"]);
+        checked += 1;
+    }
+    assert_eq!(checked, 2);
+}

@@ -250,6 +250,52 @@
           "size": 4096
         }
       }
+    },
+    {
+      "name": "ranges changed (local sender)",
+      "json": {
+        "type": "RangesChanged",
+        "data": {
+          "request_id": "f1",
+          "file_id": 3,
+          "ranges": [
+            {
+              "offset": 0,
+              "len": 16
+            },
+            {
+              "offset": 4096,
+              "len": 8
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "ranges updated (to a local receiver)",
+      "json": {
+        "type": "RangesUpdated",
+        "data": {
+          "file_id": 3,
+          "seq": 18,
+          "ranges": [
+            {
+              "offset": 4096,
+              "len": 8
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "flush end (remote sender)",
+      "json": {
+        "type": "FlushEnd",
+        "data": {
+          "request_id": "f2",
+          "file_id": 3
+        }
+      }
     }
   ],
   "invalid": [
@@ -383,6 +429,56 @@
           "file_id": 3
         }
       }
+    },
+    {
+      "name": "ranges changed without ranges field",
+      "json": {
+        "type": "RangesChanged",
+        "data": {
+          "request_id": "f1",
+          "file_id": 3
+        }
+      }
+    },
+    {
+      "name": "ranges updated without seq",
+      "json": {
+        "type": "RangesUpdated",
+        "data": {
+          "file_id": 3,
+          "ranges": [
+            {
+              "offset": 0,
+              "len": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "range with negative len",
+      "json": {
+        "type": "RangesChanged",
+        "data": {
+          "request_id": "f1",
+          "file_id": 3,
+          "ranges": [
+            {
+              "offset": 0,
+              "len": -1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "flush end without file_id",
+      "json": {
+        "type": "FlushEnd",
+        "data": {
+          "request_id": "f2"
+        }
+      }
     }
   ],
   "inconsistent_rotate_requests": [
@@ -456,6 +552,62 @@
           "service_id": "svc-1",
           "file_id": 3,
           "kind": "LOST_IN_SPACE"
+        }
+      }
+    }
+  ],
+  "inconsistent_ranges": [
+    {
+      "name": "empty ranges list",
+      "json": {
+        "type": "RangesChanged",
+        "data": {
+          "request_id": "f1",
+          "file_id": 3,
+          "ranges": []
+        }
+      }
+    },
+    {
+      "name": "zero-length range",
+      "json": {
+        "type": "RangesChanged",
+        "data": {
+          "request_id": "f1",
+          "file_id": 3,
+          "ranges": [
+            {
+              "offset": 0,
+              "len": 0
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "offset plus len overflows",
+      "json": {
+        "type": "RangesChanged",
+        "data": {
+          "request_id": "f1",
+          "file_id": 3,
+          "ranges": [
+            {
+              "offset": 18446744073709551615,
+              "len": 2
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "updated with empty ranges",
+      "json": {
+        "type": "RangesUpdated",
+        "data": {
+          "file_id": 3,
+          "seq": 1,
+          "ranges": []
         }
       }
     }
