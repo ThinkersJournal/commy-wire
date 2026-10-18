@@ -1,0 +1,10 @@
+[package]
+name = "commy-wire"
+version = "0.0.0"
+edition = "2021"
+description = "Commy wire contract (spec, JSON Schema, golden vectors, shared Rust wire types). Name reserved; first release pending."
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/ThinkersJournal/commy-wire"
+readme = "README.md"
+keywords = ["commy", "protocol", "wire", "shared-memory"]
+categories = ["network-programming"]
