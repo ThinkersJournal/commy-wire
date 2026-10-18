@@ -189,6 +189,58 @@ pub struct ErrorReply {
     pub request_id: Option<String>,
 }
 
+/// Client to server: may this service file be mapped locally?
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct GetServiceFilePath {
+    pub request_id: String,
+    pub service_id: String,
+}
+
+/// Server to client: the `file_id` that range frames use for this service. `path` and `nonce_path`
+/// are both present (local mapping offered) or both absent (stay on WSS ranges). They are absent
+/// unless the service is open to local mapping and the caller holds a write grant on it.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ServiceFilePath {
+    pub request_id: String,
+    pub service_id: String,
+    pub file_id: u32,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub path: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub nonce_path: Option<String>,
+}
+
+/// Client to server: the nonce read from `nonce_path`, proving the same filesystem view.
+#[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConfirmLocal {
+    pub request_id: String,
+    pub file_id: u32,
+    pub nonce: String,
+}
+
+impl std::fmt::Debug for ConfirmLocal {
+    // The nonce is a secret for the life of the connection; never print it.
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ConfirmLocal")
+            .field("request_id", &self.request_id)
+            .field("file_id", &self.file_id)
+            .field("nonce", &"<redacted>")
+            .finish()
+    }
+}
+
+/// Server to client: the nonce matched; the server deletes the nonce file. A mismatch is an
+/// `Error` with `PERMISSION_DENIED`.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConfirmLocalAck {
+    pub request_id: String,
+    pub file_id: u32,
+}
+
 /// JSON control messages, sent as WebSocket text frames. Adjacently tagged
 /// (`{"type": ..., "data": {...}}`); unknown fields and unknown types are refused.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -200,4 +252,8 @@ pub enum ControlMessage {
     Resync(Resync),
     ResyncDone(ResyncDone),
     Error(ErrorReply),
+    GetServiceFilePath(GetServiceFilePath),
+    ServiceFilePath(ServiceFilePath),
+    ConfirmLocal(ConfirmLocal),
+    ConfirmLocalAck(ConfirmLocalAck),
 }

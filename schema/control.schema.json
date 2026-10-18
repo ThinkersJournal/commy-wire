@@ -66,6 +66,64 @@
         }
       }
     },
+    {
+      "properties": {
+        "type": { "const": "GetServiceFilePath" },
+        "data": {
+          "type": "object",
+          "required": ["request_id", "service_id"],
+          "properties": { "request_id": { "type": "string" }, "service_id": { "type": "string" } },
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": { "const": "ServiceFilePath" },
+        "data": {
+          "type": "object",
+          "required": ["request_id", "service_id", "file_id"],
+          "properties": {
+            "request_id": { "type": "string" },
+            "service_id": { "type": "string" },
+            "file_id": { "type": "integer", "minimum": 0, "maximum": 4294967295 },
+            "path": { "type": "string" },
+            "nonce_path": { "type": "string" }
+          },
+          "dependentRequired": { "path": ["nonce_path"], "nonce_path": ["path"] },
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": { "const": "ConfirmLocal" },
+        "data": {
+          "type": "object",
+          "required": ["request_id", "file_id", "nonce"],
+          "properties": {
+            "request_id": { "type": "string" },
+            "file_id": { "type": "integer", "minimum": 0, "maximum": 4294967295 },
+            "nonce": { "type": "string" }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": { "const": "ConfirmLocalAck" },
+        "data": {
+          "type": "object",
+          "required": ["request_id", "file_id"],
+          "properties": {
+            "request_id": { "type": "string" },
+            "file_id": { "type": "integer", "minimum": 0, "maximum": 4294967295 }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
     { "$ref": "error.schema.json" }
   ],
   "required": ["type", "data"]

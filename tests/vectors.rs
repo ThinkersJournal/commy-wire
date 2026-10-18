@@ -162,3 +162,13 @@ fn split_chunks_at_the_maximum_and_keeps_seq_and_offsets() {
         assert_eq!(&RangeFrame::decode(&f.encode()).unwrap(), f);
     }
 }
+
+#[test]
+fn the_nonce_never_appears_in_debug_output() {
+    let m = commy_wire::ConfirmLocal {
+        request_id: "r".into(),
+        file_id: 1,
+        nonce: "s3cr3t-nonce".into(),
+    };
+    assert!(!format!("{m:?}").contains("s3cr3t-nonce"));
+}
