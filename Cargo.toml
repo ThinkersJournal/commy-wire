@@ -8,3 +8,9 @@ repository = "https://github.com/ThinkersJournal/commy-wire"
 readme = "README.md"
 keywords = ["commy", "protocol", "wire", "shared-memory"]
 categories = ["network-programming"]
+
+[dependencies]
+serde = { version = "1.0.229", features = ["derive"] }
+
+[dev-dependencies]
+serde_json = "1.0.154"

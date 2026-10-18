@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/ThinkersJournal/commy-wire/schema/error.schema.json",
+  "title": "Commy error reply (draft 0)",
+  "type": "object",
+  "required": ["type", "data"],
+  "properties": {
+    "type": { "const": "Error" },
+    "data": {
+      "type": "object",
+      "required": ["code", "message"],
+      "properties": {
+        "code": {
+          "enum": ["INVALID_REQUEST", "UNAUTHENTICATED", "PERMISSION_DENIED", "NOT_FOUND",
+                   "RATE_LIMITED", "UNSUPPORTED_VERSION", "INTERNAL_ERROR"]
+        },
+        "message": { "type": "string" },
+        "request_id": { "type": "string" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

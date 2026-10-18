@@ -1,0 +1,12 @@
+{
+  "_comment": "The only accepted spellings, in spec order. See spec/errors.md.",
+  "codes": [
+    "INVALID_REQUEST",
+    "UNAUTHENTICATED",
+    "PERMISSION_DENIED",
+    "NOT_FOUND",
+    "RATE_LIMITED",
+    "UNSUPPORTED_VERSION",
+    "INTERNAL_ERROR"
+  ]
+}
