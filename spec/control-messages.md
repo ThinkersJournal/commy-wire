@@ -38,3 +38,19 @@ the same `seq`), then `ResyncDone` carrying that final `seq` and the file `size`
 
 Kind `1` is the range frame. Kinds `2` to `255` are **reserved**; a receiver **refuses** a frame with
 an unknown kind (`BadKind`) rather than ignoring it, so a protocol mismatch fails loudly.
+
+## Local mapping handshake (draft 1)
+
+Used only when the client and server share a filesystem. Any failure at any step means: stay on WSS
+range frames. Nothing here weakens authentication: the session must already be authenticated.
+
+| Step | Message | Direction | Notes |
+|------|---------|-----------|-------|
+| 1 | `GetServiceFilePath{request_id, service_id}` | client to server | Authenticated sessions only. |
+| 2 | `ServiceFilePath{request_id, service_id, file_id, path?, nonce_path?}` | server to client | `file_id` is always present (range frames use it). `path` and `nonce_path` are present together or absent together; absent unless the service is open to local mapping (admin grant, default off) and the caller holds a write grant. |
+| 3 | client opens `path` read-write and reads `nonce_path` | local | The nonce file is created per connection, mode 0600 on Unix, in the tenant directory (never in the service file). |
+| 4 | `ConfirmLocal{request_id, file_id, nonce}` | client to server | The nonce is secret: never log it. |
+| 5 | `ConfirmLocalAck{request_id, file_id}` or `Error PERMISSION_DENIED` | server to client | On match the server deletes the nonce file. A wrong nonce is refused and rate-limited. |
+
+A file-size match or an IP match alone is not proof of the same filesystem view; the nonce is.
+Read-only grantees never get a path: they use WSS even on the same machine.

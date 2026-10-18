@@ -3,35 +3,222 @@
   "valid": [
     {
       "name": "authenticate",
-      "json": {"type": "Authenticate", "data": {"request_id": "r1", "protocol_version": 1, "tenant_id": "acme", "client_id": "c-1", "auth_method": "api_key", "credentials": "k"}}
+      "json": {
+        "type": "Authenticate",
+        "data": {
+          "request_id": "r1",
+          "protocol_version": 1,
+          "tenant_id": "acme",
+          "client_id": "c-1",
+          "auth_method": "api_key",
+          "credentials": "k"
+        }
+      }
     },
     {
       "name": "flush ack",
-      "json": {"type": "FlushAck", "data": {"request_id": "r2", "file_id": 3, "seq": 17}}
+      "json": {
+        "type": "FlushAck",
+        "data": {
+          "request_id": "r2",
+          "file_id": 3,
+          "seq": 17
+        }
+      }
     },
     {
       "name": "resync request",
-      "json": {"type": "Resync", "data": {"request_id": "r3", "file_id": 3}}
+      "json": {
+        "type": "Resync",
+        "data": {
+          "request_id": "r3",
+          "file_id": 3
+        }
+      }
     },
     {
       "name": "resync done",
-      "json": {"type": "ResyncDone", "data": {"request_id": "r3", "file_id": 3, "seq": 18, "size": 4096}}
+      "json": {
+        "type": "ResyncDone",
+        "data": {
+          "request_id": "r3",
+          "file_id": 3,
+          "seq": 18,
+          "size": 4096
+        }
+      }
     },
     {
       "name": "error with request id",
-      "json": {"type": "Error", "data": {"code": "PERMISSION_DENIED", "message": "no grant", "request_id": "r4"}}
+      "json": {
+        "type": "Error",
+        "data": {
+          "code": "PERMISSION_DENIED",
+          "message": "no grant",
+          "request_id": "r4"
+        }
+      }
     },
     {
       "name": "error without request id",
-      "json": {"type": "Error", "data": {"code": "INVALID_REQUEST", "message": "bad frame"}}
+      "json": {
+        "type": "Error",
+        "data": {
+          "code": "INVALID_REQUEST",
+          "message": "bad frame"
+        }
+      }
+    },
+    {
+      "name": "get service file path",
+      "json": {
+        "type": "GetServiceFilePath",
+        "data": {
+          "request_id": "r5",
+          "service_id": "svc-1"
+        }
+      }
+    },
+    {
+      "name": "service file path offered",
+      "json": {
+        "type": "ServiceFilePath",
+        "data": {
+          "request_id": "r5",
+          "service_id": "svc-1",
+          "file_id": 3,
+          "path": "/srv/commy/tenant_acme/svc-1.bin",
+          "nonce_path": "/srv/commy/tenant_acme/.nonce-9f2c"
+        }
+      }
+    },
+    {
+      "name": "service file path not offered",
+      "json": {
+        "type": "ServiceFilePath",
+        "data": {
+          "request_id": "r5",
+          "service_id": "svc-1",
+          "file_id": 3
+        }
+      }
+    },
+    {
+      "name": "confirm local",
+      "json": {
+        "type": "ConfirmLocal",
+        "data": {
+          "request_id": "r6",
+          "file_id": 3,
+          "nonce": "c0ffee"
+        }
+      }
+    },
+    {
+      "name": "confirm local ack",
+      "json": {
+        "type": "ConfirmLocalAck",
+        "data": {
+          "request_id": "r6",
+          "file_id": 3
+        }
+      }
     }
   ],
   "invalid": [
-    {"name": "authenticate without protocol_version", "json": {"type": "Authenticate", "data": {"request_id": "r1", "tenant_id": "acme", "client_id": "c-1", "auth_method": "api_key", "credentials": "k"}}},
-    {"name": "authenticate without request_id", "json": {"type": "Authenticate", "data": {"protocol_version": 1, "tenant_id": "acme", "client_id": "c-1", "auth_method": "api_key", "credentials": "k"}}},
-    {"name": "flush ack with negative seq", "json": {"type": "FlushAck", "data": {"request_id": "r2", "file_id": 3, "seq": -1}}},
-    {"name": "unknown field", "json": {"type": "Resync", "data": {"request_id": "r3", "file_id": 3, "extra": true}}},
-    {"name": "unknown message type", "json": {"type": "Bogus", "data": {}}},
-    {"name": "legacy error spelling", "json": {"type": "Error", "data": {"code": "Unauthorized", "message": "x"}}}
+    {
+      "name": "authenticate without protocol_version",
+      "json": {
+        "type": "Authenticate",
+        "data": {
+          "request_id": "r1",
+          "tenant_id": "acme",
+          "client_id": "c-1",
+          "auth_method": "api_key",
+          "credentials": "k"
+        }
+      }
+    },
+    {
+      "name": "authenticate without request_id",
+      "json": {
+        "type": "Authenticate",
+        "data": {
+          "protocol_version": 1,
+          "tenant_id": "acme",
+          "client_id": "c-1",
+          "auth_method": "api_key",
+          "credentials": "k"
+        }
+      }
+    },
+    {
+      "name": "flush ack with negative seq",
+      "json": {
+        "type": "FlushAck",
+        "data": {
+          "request_id": "r2",
+          "file_id": 3,
+          "seq": -1
+        }
+      }
+    },
+    {
+      "name": "unknown field",
+      "json": {
+        "type": "Resync",
+        "data": {
+          "request_id": "r3",
+          "file_id": 3,
+          "extra": true
+        }
+      }
+    },
+    {
+      "name": "unknown message type",
+      "json": {
+        "type": "Bogus",
+        "data": {}
+      }
+    },
+    {
+      "name": "legacy error spelling",
+      "json": {
+        "type": "Error",
+        "data": {
+          "code": "Unauthorized",
+          "message": "x"
+        }
+      }
+    },
+    {
+      "name": "confirm local without nonce",
+      "json": {
+        "type": "ConfirmLocal",
+        "data": {
+          "request_id": "r6",
+          "file_id": 3
+        }
+      }
+    },
+    {
+      "name": "service file path without file_id",
+      "json": {
+        "type": "ServiceFilePath",
+        "data": {
+          "request_id": "r5",
+          "service_id": "svc-1"
+        }
+      }
+    },
+    {
+      "name": "get service file path without service_id",
+      "json": {
+        "type": "GetServiceFilePath",
+        "data": {
+          "request_id": "r5"
+        }
+      }
+    }
   ]
 }
