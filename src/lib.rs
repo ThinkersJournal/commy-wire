@@ -354,7 +354,8 @@ pub struct LossRange {
     pub len: u64,
 }
 
-/// Server to a client: writes of its own were lost, and why.
+/// Server to a client: writes of its own were lost, and why. `ranges` are in old-file coordinates;
+/// empty means the whole file. A receiver treats an unknown `kind` as a loss of the whole file.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Loss {

@@ -43,3 +43,21 @@ remaining SDK writes its unflushed ranges into the new file after mapping it. Th
 ## Audit
 
 Every request, grant and refusal is written to the server's audit log.
+
+## Timing, sequences and edge cases (clarifications)
+
+- **`deadline_ms`** is relative to the SDK's receipt of `RotationPending`; no clocks are shared. An SDK
+  that has not seen `RotationCommit` within `deadline_ms + 5000` ms of receiving `RotationPending`
+  treats the rotation as failed, stops waiting, and resyncs. A blocked writer is never held forever.
+- **`seq` restarts at 0 for every new `file_id`.** Frames carry `file_id`, so a receiver keys its
+  last-applied-sequence table by `(file_id, seq)` and drops the old file's entries at commit.
+  `RotationDrained.seq` is the highest `seq` this SDK sent for the old `file_id` (0 if it sent none).
+- **After `RotationCommit`**, range frames for `old_file_id` are refused with `INVALID_REQUEST`.
+  `GetServiceFilePath` returns `new_file_id` with a **fresh** nonce side file: the local handshake is
+  redone for the new file and never reused. A REVOCATION survivor maps the new file **before**
+  re-sending its unflushed ranges.
+- **`Loss.ranges`** are `{offset, len}` in **old-file** coordinates; absent means the whole file.
+  `LossKind` is `#[non_exhaustive]`: a receiver treats an unknown kind as a loss of the whole file.
+- **Broadcasts** (`RotationPending`, `RotationCommit`) carry no `request_id`. A late joiner may receive
+  a `RotationCommit` without a `RotationPending`: receivers must accept it. A second `RotationCommit`
+  with the same `rotation_id` is ignored.
