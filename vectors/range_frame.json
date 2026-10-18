@@ -1,5 +1,5 @@
 {
-  "_comment": "Golden vectors for the binary range frame. See spec/range-frame.md. Integers are little-endian. Generated once; edit by hand only with a spec change.",
+  "_comment": "Golden vectors for the binary range frame. See spec/range-frame.md. Integers are little-endian. Generated once; edit by hand only with a spec change. Entries with header_hex and payload_repeat stand for header bytes followed by `count` copies of `byte` (keeps the file small).",
   "valid": [
     {
       "name": "three bytes at page offset",
@@ -24,6 +24,17 @@
       "seq": 1,
       "offset": 68719476735,
       "data_hex": "0102"
+    },
+    {
+      "name": "payload exactly at the 1 MiB maximum",
+      "header_hex": "01010000000200000000000000000000000000000000001000",
+      "payload_repeat": {
+        "byte": "ab",
+        "count": 1048576
+      },
+      "file_id": 1,
+      "seq": 2,
+      "offset": 0
     }
   ],
   "invalid": [
@@ -61,6 +72,15 @@
       "name": "offset plus len overflows u64",
       "hex": "01010000000200000000000000ffffffffffffffff03000000deadbe",
       "error": "OffsetOverflow"
+    },
+    {
+      "name": "payload over the 1 MiB maximum",
+      "header_hex": "01010000000200000000000000000000000000000001001000",
+      "payload_repeat": {
+        "byte": "00",
+        "count": 1048577
+      },
+      "error": "TooLarge"
     }
   ]
 }
