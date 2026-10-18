@@ -1,6 +1,7 @@
 # Changelog
 
-## 0.1.1
+## 0.2.0
+- `FrameError`, `ErrorCode` and `ControlMessage` are `#[non_exhaustive]`, so later variants are not breaking.
 - Frame payload capped at 1 MiB (`MAX_PAYLOAD`, `FrameError::TooLarge`), `RangeFrame::split`, `ControlMessage` (Authenticate with protocol_version, FlushAck, Resync, ResyncDone, Error), `schema/control.schema.json`, `spec/control-messages.md` (multi-frame flushes, seq/echo rules, resync, reserved kinds).
 
 ## 0.1.0
