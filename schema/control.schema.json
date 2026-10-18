@@ -5,17 +5,40 @@
   "oneOf": [
     {
       "properties": {
-        "type": { "const": "Authenticate" },
+        "type": {
+          "const": "Authenticate"
+        },
         "data": {
           "type": "object",
-          "required": ["request_id", "protocol_version", "tenant_id", "client_id", "auth_method", "credentials"],
+          "required": [
+            "request_id",
+            "protocol_version",
+            "tenant_id",
+            "client_id",
+            "auth_method",
+            "credentials"
+          ],
           "properties": {
-            "request_id": { "type": "string" },
-            "protocol_version": { "type": "integer", "minimum": 0, "maximum": 4294967295 },
-            "tenant_id": { "type": "string" },
-            "client_id": { "type": "string" },
-            "auth_method": { "type": "string" },
-            "credentials": { "type": "string" }
+            "request_id": {
+              "type": "string"
+            },
+            "protocol_version": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4294967295
+            },
+            "tenant_id": {
+              "type": "string"
+            },
+            "client_id": {
+              "type": "string"
+            },
+            "auth_method": {
+              "type": "string"
+            },
+            "credentials": {
+              "type": "string"
+            }
           },
           "additionalProperties": false
         }
@@ -23,14 +46,29 @@
     },
     {
       "properties": {
-        "type": { "const": "FlushAck" },
+        "type": {
+          "const": "FlushAck"
+        },
         "data": {
           "type": "object",
-          "required": ["request_id", "file_id", "seq"],
+          "required": [
+            "request_id",
+            "file_id",
+            "seq"
+          ],
           "properties": {
-            "request_id": { "type": "string" },
-            "file_id": { "type": "integer", "minimum": 0, "maximum": 4294967295 },
-            "seq": { "type": "integer", "minimum": 0 }
+            "request_id": {
+              "type": "string"
+            },
+            "file_id": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4294967295
+            },
+            "seq": {
+              "type": "integer",
+              "minimum": 0
+            }
           },
           "additionalProperties": false
         }
@@ -38,13 +76,24 @@
     },
     {
       "properties": {
-        "type": { "const": "Resync" },
+        "type": {
+          "const": "Resync"
+        },
         "data": {
           "type": "object",
-          "required": ["request_id", "file_id"],
+          "required": [
+            "request_id",
+            "file_id"
+          ],
           "properties": {
-            "request_id": { "type": "string" },
-            "file_id": { "type": "integer", "minimum": 0, "maximum": 4294967295 }
+            "request_id": {
+              "type": "string"
+            },
+            "file_id": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4294967295
+            }
           },
           "additionalProperties": false
         }
@@ -52,15 +101,34 @@
     },
     {
       "properties": {
-        "type": { "const": "ResyncDone" },
+        "type": {
+          "const": "ResyncDone"
+        },
         "data": {
           "type": "object",
-          "required": ["request_id", "file_id", "seq", "size"],
+          "required": [
+            "request_id",
+            "file_id",
+            "seq",
+            "size"
+          ],
           "properties": {
-            "request_id": { "type": "string" },
-            "file_id": { "type": "integer", "minimum": 0, "maximum": 4294967295 },
-            "seq": { "type": "integer", "minimum": 0 },
-            "size": { "type": "integer", "minimum": 0 }
+            "request_id": {
+              "type": "string"
+            },
+            "file_id": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4294967295
+            },
+            "seq": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "size": {
+              "type": "integer",
+              "minimum": 0
+            }
           },
           "additionalProperties": false
         }
@@ -68,43 +136,22 @@
     },
     {
       "properties": {
-        "type": { "const": "GetServiceFilePath" },
+        "type": {
+          "const": "GetServiceFilePath"
+        },
         "data": {
           "type": "object",
-          "required": ["request_id", "service_id"],
-          "properties": { "request_id": { "type": "string" }, "service_id": { "type": "string" } },
-          "additionalProperties": false
-        }
-      }
-    },
-    {
-      "properties": {
-        "type": { "const": "ServiceFilePath" },
-        "data": {
-          "type": "object",
-          "required": ["request_id", "service_id", "file_id"],
+          "required": [
+            "request_id",
+            "service_id"
+          ],
           "properties": {
-            "request_id": { "type": "string" },
-            "service_id": { "type": "string" },
-            "file_id": { "type": "integer", "minimum": 0, "maximum": 4294967295 },
-            "path": { "type": "string" },
-            "nonce_path": { "type": "string" }
-          },
-          "dependentRequired": { "path": ["nonce_path"], "nonce_path": ["path"] },
-          "additionalProperties": false
-        }
-      }
-    },
-    {
-      "properties": {
-        "type": { "const": "ConfirmLocal" },
-        "data": {
-          "type": "object",
-          "required": ["request_id", "file_id", "nonce"],
-          "properties": {
-            "request_id": { "type": "string" },
-            "file_id": { "type": "integer", "minimum": 0, "maximum": 4294967295 },
-            "nonce": { "type": "string" }
+            "request_id": {
+              "type": "string"
+            },
+            "service_id": {
+              "type": "string"
+            }
           },
           "additionalProperties": false
         }
@@ -112,19 +159,343 @@
     },
     {
       "properties": {
-        "type": { "const": "ConfirmLocalAck" },
+        "type": {
+          "const": "ServiceFilePath"
+        },
         "data": {
           "type": "object",
-          "required": ["request_id", "file_id"],
+          "required": [
+            "request_id",
+            "service_id",
+            "file_id"
+          ],
           "properties": {
-            "request_id": { "type": "string" },
-            "file_id": { "type": "integer", "minimum": 0, "maximum": 4294967295 }
+            "request_id": {
+              "type": "string"
+            },
+            "service_id": {
+              "type": "string"
+            },
+            "file_id": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4294967295
+            },
+            "path": {
+              "type": "string"
+            },
+            "nonce_path": {
+              "type": "string"
+            }
+          },
+          "dependentRequired": {
+            "path": [
+              "nonce_path"
+            ],
+            "nonce_path": [
+              "path"
+            ]
           },
           "additionalProperties": false
         }
       }
     },
-    { "$ref": "error.schema.json" }
+    {
+      "properties": {
+        "type": {
+          "const": "ConfirmLocal"
+        },
+        "data": {
+          "type": "object",
+          "required": [
+            "request_id",
+            "file_id",
+            "nonce"
+          ],
+          "properties": {
+            "request_id": {
+              "type": "string"
+            },
+            "file_id": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4294967295
+            },
+            "nonce": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "ConfirmLocalAck"
+        },
+        "data": {
+          "type": "object",
+          "required": [
+            "request_id",
+            "file_id"
+          ],
+          "properties": {
+            "request_id": {
+              "type": "string"
+            },
+            "file_id": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4294967295
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "RotateRequest"
+        },
+        "data": {
+          "type": "object",
+          "required": [
+            "request_id",
+            "service_id",
+            "reason"
+          ],
+          "properties": {
+            "request_id": {
+              "type": "string"
+            },
+            "service_id": {
+              "type": "string"
+            },
+            "reason": {
+              "enum": [
+                "RESIZE",
+                "REVOCATION"
+              ]
+            },
+            "new_size": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "revoke_client_id": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "RotationAccepted"
+        },
+        "data": {
+          "type": "object",
+          "required": [
+            "request_id",
+            "rotation_id"
+          ],
+          "properties": {
+            "request_id": {
+              "type": "string"
+            },
+            "rotation_id": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "RotationPending"
+        },
+        "data": {
+          "type": "object",
+          "required": [
+            "rotation_id",
+            "service_id",
+            "file_id",
+            "deadline_ms"
+          ],
+          "properties": {
+            "rotation_id": {
+              "type": "string"
+            },
+            "service_id": {
+              "type": "string"
+            },
+            "file_id": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4294967295
+            },
+            "deadline_ms": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "RotationDrained"
+        },
+        "data": {
+          "type": "object",
+          "required": [
+            "request_id",
+            "rotation_id",
+            "file_id",
+            "seq"
+          ],
+          "properties": {
+            "request_id": {
+              "type": "string"
+            },
+            "rotation_id": {
+              "type": "string"
+            },
+            "file_id": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4294967295
+            },
+            "seq": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "RotationCommit"
+        },
+        "data": {
+          "type": "object",
+          "required": [
+            "rotation_id",
+            "service_id",
+            "reason",
+            "old_file_id",
+            "new_file_id",
+            "generation",
+            "size"
+          ],
+          "properties": {
+            "rotation_id": {
+              "type": "string"
+            },
+            "service_id": {
+              "type": "string"
+            },
+            "reason": {
+              "enum": [
+                "RESIZE",
+                "REVOCATION"
+              ]
+            },
+            "old_file_id": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4294967295
+            },
+            "new_file_id": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4294967295
+            },
+            "generation": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "size": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "Loss"
+        },
+        "data": {
+          "type": "object",
+          "required": [
+            "service_id",
+            "file_id",
+            "kind"
+          ],
+          "properties": {
+            "service_id": {
+              "type": "string"
+            },
+            "file_id": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4294967295
+            },
+            "kind": {
+              "type": "string",
+              "description": "Known: ROTATION_STRAGGLER, RESYNC_OVERWROTE, REVOKED. A receiver treats any other value as a loss of the whole file.",
+              "examples": [
+                "ROTATION_STRAGGLER",
+                "RESYNC_OVERWROTE",
+                "REVOKED"
+              ]
+            },
+            "ranges": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "offset",
+                  "len"
+                ],
+                "properties": {
+                  "offset": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "len": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "$ref": "error.schema.json"
+    }
   ],
-  "required": ["type", "data"]
+  "required": [
+    "type",
+    "data"
+  ]
 }

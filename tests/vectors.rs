@@ -172,3 +172,53 @@ fn the_nonce_never_appears_in_debug_output() {
     };
     assert!(!format!("{m:?}").contains("s3cr3t-nonce"));
 }
+
+#[test]
+fn inconsistent_rotate_requests_parse_but_fail_validation() {
+    let v = load("control_messages.json");
+    let cases = v["inconsistent_rotate_requests"].as_array().unwrap();
+    assert!(!cases.is_empty());
+    for c in cases {
+        let name = c["name"].as_str().unwrap();
+        let msg: ControlMessage = serde_json::from_value(c["json"].clone())
+            .unwrap_or_else(|e| panic!("{name} must parse: {e}"));
+        let ControlMessage::RotateRequest(req) = msg else {
+            panic!("{name}: not a RotateRequest");
+        };
+        assert!(req.validate().is_err(), "{name} must fail validation");
+    }
+}
+
+#[test]
+fn consistent_rotate_requests_pass_validation() {
+    let v = load("control_messages.json");
+    let mut checked = 0;
+    for c in v["valid"].as_array().unwrap() {
+        let msg: ControlMessage = serde_json::from_value(c["json"].clone()).unwrap();
+        if let ControlMessage::RotateRequest(req) = msg {
+            assert!(req.validate().is_ok(), "{}", c["name"]);
+            checked += 1;
+        }
+    }
+    assert_eq!(checked, 2);
+}
+
+#[test]
+fn an_unknown_loss_kind_parses_as_unknown_and_means_whole_file() {
+    let v = load("control_messages.json");
+    let cases = v["tolerated_unknown_loss_kinds"].as_array().unwrap();
+    assert!(!cases.is_empty());
+    for c in cases {
+        let name = c["name"].as_str().unwrap();
+        let msg: ControlMessage = serde_json::from_value(c["json"].clone())
+            .unwrap_or_else(|e| panic!("{name} must parse: {e}"));
+        let ControlMessage::Loss(loss) = msg else {
+            panic!("{name}: not a Loss");
+        };
+        assert_eq!(loss.kind, commy_wire::LossKind::Unknown, "{name}");
+        assert!(
+            loss.ranges.is_empty(),
+            "{name}: empty ranges mean the whole file"
+        );
+    }
+}

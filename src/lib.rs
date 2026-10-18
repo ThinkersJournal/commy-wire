@@ -241,6 +241,134 @@ pub struct ConfirmLocalAck {
     pub file_id: u32,
 }
 
+/// Why a service file is being replaced.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[non_exhaustive]
+pub enum RotateReason {
+    /// The file changes size. A drain barrier runs first; old-offset writes are never replayed.
+    Resize,
+    /// A client is removed. Same size and shape; old bytes are kept; no drain barrier.
+    Revocation,
+}
+
+/// Client to server: replace a service's file. `new_size` is required for `RESIZE` and forbidden
+/// for `REVOCATION`; `revoke_client_id` is the reverse. See [`RotateRequest::validate`].
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct RotateRequest {
+    pub request_id: String,
+    pub service_id: String,
+    pub reason: RotateReason,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub new_size: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub revoke_client_id: Option<String>,
+}
+
+impl RotateRequest {
+    /// Check the fields agree with `reason`. A request that fails is answered `INVALID_REQUEST`.
+    pub fn validate(&self) -> Result<(), &'static str> {
+        match self.reason {
+            RotateReason::Resize => match (self.new_size, &self.revoke_client_id) {
+                (Some(n), None) if n > 0 => Ok(()),
+                (Some(0), _) => Err("new_size must be at least 1"),
+                (None, _) => Err("RESIZE needs new_size"),
+                (_, Some(_)) => Err("RESIZE must not name a client"),
+                _ => Err("invalid RESIZE request"),
+            },
+            RotateReason::Revocation => match (self.new_size, &self.revoke_client_id) {
+                (None, Some(c)) if !c.is_empty() => Ok(()),
+                (_, None) => Err("REVOCATION needs revoke_client_id"),
+                (Some(_), _) => Err("REVOCATION must not set new_size"),
+                _ => Err("invalid REVOCATION request"),
+            },
+        }
+    }
+}
+
+/// Server to client: the request was accepted. The rotation ends with [`RotationCommit`].
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct RotationAccepted {
+    pub request_id: String,
+    pub rotation_id: String,
+}
+
+/// Server to every SDK on the service (resize only): the drain barrier is open. Stop issuing write
+/// guards, wait for outstanding ones, flush into the old file, then send [`RotationDrained`] within
+/// `deadline_ms`. An SDK that does not is dropped with a `ROTATION_STRAGGLER` [`Loss`].
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct RotationPending {
+    pub rotation_id: String,
+    pub service_id: String,
+    pub file_id: u32,
+    pub deadline_ms: u64,
+}
+
+/// Client to server: everything written so far is flushed; `seq` is the last sequence flushed.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct RotationDrained {
+    pub request_id: String,
+    pub rotation_id: String,
+    pub file_id: u32,
+    pub seq: u64,
+}
+
+/// Server to every SDK on the service: the new file is live. `new_file_id` differs from
+/// `old_file_id` and is the handle for the new mapping; fetch it with `GetServiceFilePath` (local)
+/// or `Resync` (remote). After a revocation, each remaining SDK writes its unflushed ranges into
+/// the new file; after a resize, old-offset writes are never replayed.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct RotationCommit {
+    pub rotation_id: String,
+    pub service_id: String,
+    pub reason: RotateReason,
+    pub old_file_id: u32,
+    pub new_file_id: u32,
+    pub generation: u64,
+    pub size: u64,
+}
+
+/// What a program lost.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[non_exhaustive]
+pub enum LossKind {
+    /// It did not drain in time (or kept writing to the old mapping); those writes are not replayed.
+    RotationStraggler,
+    /// A resync overwrote local changes; `ranges` names them.
+    ResyncOverwrote,
+    /// Its access was revoked; unflushed writes are dropped.
+    Revoked,
+    /// A kind this version does not know. Treat it as a loss of the whole file.
+    #[serde(other)]
+    Unknown,
+}
+
+/// A byte range inside a file.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct LossRange {
+    pub offset: u64,
+    pub len: u64,
+}
+
+/// Server to a client: writes of its own were lost, and why. `ranges` are in old-file coordinates;
+/// empty means the whole file. A receiver treats an unknown `kind` as a loss of the whole file.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Loss {
+    pub service_id: String,
+    pub file_id: u32,
+    pub kind: LossKind,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub ranges: Vec<LossRange>,
+}
+
 /// JSON control messages, sent as WebSocket text frames. Adjacently tagged
 /// (`{"type": ..., "data": {...}}`); unknown fields and unknown types are refused.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -256,4 +384,10 @@ pub enum ControlMessage {
     ServiceFilePath(ServiceFilePath),
     ConfirmLocal(ConfirmLocal),
     ConfirmLocalAck(ConfirmLocalAck),
+    RotateRequest(RotateRequest),
+    RotationAccepted(RotationAccepted),
+    RotationPending(RotationPending),
+    RotationDrained(RotationDrained),
+    RotationCommit(RotationCommit),
+    Loss(Loss),
 }
