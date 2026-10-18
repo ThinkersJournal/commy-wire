@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/ThinkersJournal/commy-wire/schema/control.schema.json",
+  "title": "Commy control message (draft 1)",
+  "oneOf": [
+    {
+      "properties": {
+        "type": { "const": "Authenticate" },
+        "data": {
+          "type": "object",
+          "required": ["request_id", "protocol_version", "tenant_id", "client_id", "auth_method", "credentials"],
+          "properties": {
+            "request_id": { "type": "string" },
+            "protocol_version": { "type": "integer", "minimum": 0, "maximum": 4294967295 },
+            "tenant_id": { "type": "string" },
+            "client_id": { "type": "string" },
+            "auth_method": { "type": "string" },
+            "credentials": { "type": "string" }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": { "const": "FlushAck" },
+        "data": {
+          "type": "object",
+          "required": ["request_id", "file_id", "seq"],
+          "properties": {
+            "request_id": { "type": "string" },
+            "file_id": { "type": "integer", "minimum": 0, "maximum": 4294967295 },
+            "seq": { "type": "integer", "minimum": 0 }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": { "const": "Resync" },
+        "data": {
+          "type": "object",
+          "required": ["request_id", "file_id"],
+          "properties": {
+            "request_id": { "type": "string" },
+            "file_id": { "type": "integer", "minimum": 0, "maximum": 4294967295 }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": { "const": "ResyncDone" },
+        "data": {
+          "type": "object",
+          "required": ["request_id", "file_id", "seq", "size"],
+          "properties": {
+            "request_id": { "type": "string" },
+            "file_id": { "type": "integer", "minimum": 0, "maximum": 4294967295 },
+            "seq": { "type": "integer", "minimum": 0 },
+            "size": { "type": "integer", "minimum": 0 }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    { "$ref": "error.schema.json" }
+  ],
+  "required": ["type", "data"]
+}
