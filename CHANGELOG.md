@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.2.2
+- README: state that the layout is unfrozen.
+
 ## 0.2.1
 - Local-mapping handshake: `GetServiceFilePath`, `ServiceFilePath` (path/nonce_path both or neither), `ConfirmLocal` (nonce redacted in Debug), `ConfirmLocalAck`; spec, schema and vectors. Variants added to a `#[non_exhaustive]` enum, so not breaking.
 
