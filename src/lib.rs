@@ -17,6 +17,7 @@ pub const MAX_PAYLOAD: usize = 1024 * 1024;
 
 /// Why a binary frame was refused.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum FrameError {
     /// Fewer bytes than the header needs.
     Truncated,
@@ -103,6 +104,7 @@ impl RangeFrame {
 /// The only spellings an error code may have on the wire, from server and SDKs alike.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[non_exhaustive]
 pub enum ErrorCode {
     InvalidRequest,
     Unauthenticated,
@@ -191,6 +193,7 @@ pub struct ErrorReply {
 /// (`{"type": ..., "data": {...}}`); unknown fields and unknown types are refused.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "type", content = "data")]
+#[non_exhaustive]
 pub enum ControlMessage {
     Authenticate(Authenticate),
     FlushAck(FlushAck),
