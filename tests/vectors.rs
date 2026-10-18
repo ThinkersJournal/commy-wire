@@ -202,3 +202,23 @@ fn consistent_rotate_requests_pass_validation() {
     }
     assert_eq!(checked, 2);
 }
+
+#[test]
+fn an_unknown_loss_kind_parses_as_unknown_and_means_whole_file() {
+    let v = load("control_messages.json");
+    let cases = v["tolerated_unknown_loss_kinds"].as_array().unwrap();
+    assert!(!cases.is_empty());
+    for c in cases {
+        let name = c["name"].as_str().unwrap();
+        let msg: ControlMessage = serde_json::from_value(c["json"].clone())
+            .unwrap_or_else(|e| panic!("{name} must parse: {e}"));
+        let ControlMessage::Loss(loss) = msg else {
+            panic!("{name}: not a Loss");
+        };
+        assert_eq!(loss.kind, commy_wire::LossKind::Unknown, "{name}");
+        assert!(
+            loss.ranges.is_empty(),
+            "{name}: empty ranges mean the whole file"
+        );
+    }
+}

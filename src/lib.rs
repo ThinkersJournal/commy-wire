@@ -344,6 +344,9 @@ pub enum LossKind {
     ResyncOverwrote,
     /// Its access was revoked; unflushed writes are dropped.
     Revoked,
+    /// A kind this version does not know. Treat it as a loss of the whole file.
+    #[serde(other)]
+    Unknown,
 }
 
 /// A byte range inside a file.

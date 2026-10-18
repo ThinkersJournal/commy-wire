@@ -61,3 +61,7 @@ Every request, grant and refusal is written to the server's audit log.
 - **Broadcasts** (`RotationPending`, `RotationCommit`) carry no `request_id`. A late joiner may receive
   a `RotationCommit` without a `RotationPending`: receivers must accept it. A second `RotationCommit`
   with the same `rotation_id` is ignored.
+
+The Rust type carries this as `LossKind::Unknown` (deserialized from any unrecognised kind); the JSON
+Schema therefore accepts any string for `Loss.kind`. Vectors: `tolerated_unknown_loss_kinds` in
+`vectors/control_messages.json`.

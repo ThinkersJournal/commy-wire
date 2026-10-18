@@ -235,6 +235,21 @@
           "kind": "REVOKED"
         }
       }
+    },
+    {
+      "name": "commit without a preceding pending (late joiner) is just a commit",
+      "json": {
+        "type": "RotationCommit",
+        "data": {
+          "rotation_id": "rot-2",
+          "service_id": "svc-1",
+          "reason": "REVOCATION",
+          "old_file_id": 4,
+          "new_file_id": 5,
+          "generation": 2,
+          "size": 4096
+        }
+      }
     }
   ],
   "invalid": [
@@ -359,17 +374,6 @@
       }
     },
     {
-      "name": "loss with unknown kind",
-      "json": {
-        "type": "Loss",
-        "data": {
-          "service_id": "svc-1",
-          "file_id": 3,
-          "kind": "LOST"
-        }
-      }
-    },
-    {
       "name": "rotation drained without seq",
       "json": {
         "type": "RotationDrained",
@@ -439,6 +443,19 @@
           "reason": "REVOCATION",
           "revoke_client_id": "c-9",
           "new_size": 4096
+        }
+      }
+    }
+  ],
+  "tolerated_unknown_loss_kinds": [
+    {
+      "name": "loss with a kind from a newer server",
+      "json": {
+        "type": "Loss",
+        "data": {
+          "service_id": "svc-1",
+          "file_id": 3,
+          "kind": "LOST_IN_SPACE"
         }
       }
     }

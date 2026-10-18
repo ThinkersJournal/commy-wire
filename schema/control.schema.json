@@ -456,7 +456,9 @@
               "maximum": 4294967295
             },
             "kind": {
-              "enum": [
+              "type": "string",
+              "description": "Known: ROTATION_STRAGGLER, RESYNC_OVERWROTE, REVOKED. A receiver treats any other value as a loss of the whole file.",
+              "examples": [
                 "ROTATION_STRAGGLER",
                 "RESYNC_OVERWROTE",
                 "REVOKED"
