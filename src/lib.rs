@@ -377,19 +377,32 @@ pub struct ByteRange {
     pub len: u64,
 }
 
-/// Check a range list: at least one range, none empty, none whose end overflows a u64.
-/// A message that fails is answered `INVALID_REQUEST` (or dropped, when it came from the server).
+/// Most ranges one `RangesChanged` or `RangesUpdated` may carry. A flush with more is split into
+/// several messages, each getting its own `seq`.
+pub const MAX_RANGES_PER_MESSAGE: usize = 1024;
+
+/// Check a range list: 1 to [`MAX_RANGES_PER_MESSAGE`] ranges, none empty, none whose end overflows a
+/// u64, sorted by offset and not overlapping (adjacent is fine). A message that fails is answered
+/// `INVALID_REQUEST` (or dropped, when it came from the server).
 pub fn validate_ranges(ranges: &[ByteRange]) -> Result<(), &'static str> {
     if ranges.is_empty() {
         return Err("ranges must not be empty");
     }
+    if ranges.len() > MAX_RANGES_PER_MESSAGE {
+        return Err("too many ranges in one message");
+    }
+    let mut prev_end = 0u64;
     for r in ranges {
         if r.len == 0 {
             return Err("a range must cover at least one byte");
         }
-        if r.offset.checked_add(r.len).is_none() {
+        let Some(end) = r.offset.checked_add(r.len) else {
             return Err("offset plus len overflows");
+        };
+        if r.offset < prev_end {
+            return Err("ranges must be sorted and must not overlap");
         }
+        prev_end = end;
     }
     Ok(())
 }

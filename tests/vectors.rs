@@ -255,5 +255,10 @@ fn valid_range_lists_pass_validation() {
         assert!(commy_wire::validate_ranges(ranges).is_ok(), "{}", c["name"]);
         checked += 1;
     }
-    assert_eq!(checked, 2);
+    assert_eq!(checked, 4);
+}
+
+#[test]
+fn the_range_cap_is_1024() {
+    assert_eq!(commy_wire::MAX_RANGES_PER_MESSAGE, 1024);
 }

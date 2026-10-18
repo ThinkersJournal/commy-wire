@@ -530,7 +530,10 @@
                   }
                 },
                 "additionalProperties": false
-              }
+              },
+              "minItems": 1,
+              "maxItems": 1024,
+              "description": "Sorted by offset, non-empty, non-overlapping; JSON Schema cannot express the ordering, so receivers also run validate_ranges."
             }
           },
           "additionalProperties": false
@@ -578,7 +581,10 @@
                   }
                 },
                 "additionalProperties": false
-              }
+              },
+              "minItems": 1,
+              "maxItems": 1024,
+              "description": "Sorted by offset, non-empty, non-overlapping; JSON Schema cannot express the ordering, so receivers also run validate_ranges."
             }
           },
           "additionalProperties": false
