@@ -278,3 +278,38 @@ fn an_unknown_abort_reason_parses_as_unknown() {
         assert_eq!(a.reason, commy_wire::AbortReason::Unknown, "{name}");
     }
 }
+
+#[test]
+fn inconsistent_grant_requests_parse_but_fail_validation() {
+    let v = load("control_messages.json");
+    let cases = v["inconsistent_grants"].as_array().unwrap();
+    assert!(!cases.is_empty());
+    for c in cases {
+        let name = c["name"].as_str().unwrap();
+        let msg: ControlMessage = serde_json::from_value(c["json"].clone())
+            .unwrap_or_else(|e| panic!("{name} must parse: {e}"));
+        let result = match &msg {
+            ControlMessage::Grant(g) => g.validate(),
+            ControlMessage::Revoke(r) => r.validate(),
+            _ => panic!("{name}: not a grant message"),
+        };
+        assert!(result.is_err(), "{name} must fail validation");
+    }
+}
+
+#[test]
+fn consistent_grant_requests_pass_validation() {
+    let v = load("control_messages.json");
+    let mut checked = 0;
+    for c in v["valid"].as_array().unwrap() {
+        let msg: ControlMessage = serde_json::from_value(c["json"].clone()).unwrap();
+        let result = match &msg {
+            ControlMessage::Grant(g) => g.validate(),
+            ControlMessage::Revoke(r) => r.validate(),
+            _ => continue,
+        };
+        assert!(result.is_ok(), "{}", c["name"]);
+        checked += 1;
+    }
+    assert_eq!(checked, 4);
+}
