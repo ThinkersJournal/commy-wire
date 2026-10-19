@@ -297,7 +297,9 @@ pub struct RotationAccepted {
 
 /// Server to every SDK on the service (resize only): the drain barrier is open. Stop issuing write
 /// guards, wait for outstanding ones, flush into the old file, then send [`RotationDrained`] within
-/// `deadline_ms`. An SDK that does not is dropped with a `ROTATION_STRAGGLER` [`Loss`].
+/// `deadline_ms`. An SDK that does not is dropped with a `ROTATION_STRAGGLER` [`Loss`]. After the
+/// barrier the requester fills the new file; the rotation ends with a [`RotationCommit`] or a
+/// [`RotationAborted`] within `fill_ms` more (see `spec/rotation.md`).
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct RotationPending {
@@ -305,6 +307,66 @@ pub struct RotationPending {
     pub service_id: String,
     pub file_id: u32,
     pub deadline_ms: u64,
+    pub fill_ms: u64,
+}
+
+/// Server to the requester only, after the drain barrier (resize only): the new file exists at
+/// `new_file_id`, zero filled, and is not live yet. Fill it from the old file in the new shape, then
+/// send [`RotationFilled`]. A local requester gets `path` and writes it directly; a remote requester
+/// has no `path` and sends range frames for `new_file_id`, ending with `FlushEnd`.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct RotationPrepared {
+    pub rotation_id: String,
+    pub service_id: String,
+    pub old_file_id: u32,
+    pub new_file_id: u32,
+    pub size: u64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub path: Option<String>,
+}
+
+/// Requester to server: the new file is filled; commit the rotation.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct RotationFilled {
+    pub request_id: String,
+    pub rotation_id: String,
+}
+
+/// Requester to server: give up; keep the old file.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct RotationAbort {
+    pub request_id: String,
+    pub rotation_id: String,
+}
+
+/// Why a rotation was abandoned.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[non_exhaustive]
+pub enum AbortReason {
+    /// The requester sent `RotationAbort`.
+    RequesterAbort,
+    /// The requester did not send `RotationFilled` within `fill_ms`.
+    FillTimeout,
+    /// The server could not build or switch to the new file.
+    ServerError,
+    /// A reason this version does not know. Treat the rotation as abandoned.
+    #[serde(other)]
+    Unknown,
+}
+
+/// Server to every member (and the requester): the rotation is abandoned. The old file stays live;
+/// writers resume on it. Nothing was replayed or lost.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct RotationAborted {
+    pub rotation_id: String,
+    pub service_id: String,
+    pub file_id: u32,
+    pub reason: AbortReason,
 }
 
 /// Client to server: everything written so far is flushed; `seq` is the last sequence flushed.
@@ -455,6 +517,10 @@ pub enum ControlMessage {
     RotateRequest(RotateRequest),
     RotationAccepted(RotationAccepted),
     RotationPending(RotationPending),
+    RotationPrepared(RotationPrepared),
+    RotationFilled(RotationFilled),
+    RotationAbort(RotationAbort),
+    RotationAborted(RotationAborted),
     RotationDrained(RotationDrained),
     RotationCommit(RotationCommit),
     Loss(Loss),
