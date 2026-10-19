@@ -499,6 +499,102 @@ pub struct FlushEnd {
     pub file_id: u32,
 }
 
+/// Client to server: give `client_id` permissions. With `service_id` they apply to that service only;
+/// without it they are tenant-wide, shorthand for every service of the tenant.
+/// Permission names are `tenant:read|write|admin`, `service:read|write|admin|resize` and so on.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Grant {
+    pub request_id: String,
+    pub client_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub service_id: Option<String>,
+    pub permissions: Vec<String>,
+}
+
+impl Grant {
+    /// Check the fields. A request that fails is answered `INVALID_REQUEST`.
+    pub fn validate(&self) -> Result<(), &'static str> {
+        validate_grant_fields(&self.client_id, Some(&self.permissions), true)
+    }
+}
+
+/// Client to server: take permissions away. An empty `permissions` list removes every permission of
+/// `client_id` at that scope. Revoking a client from a **service** also triggers a revocation rotation
+/// of that service alone: the client is removed from the file and gets `Loss{REVOKED}`.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Revoke {
+    pub request_id: String,
+    pub client_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub service_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub permissions: Vec<String>,
+}
+
+impl Revoke {
+    /// Check the fields. A request that fails is answered `INVALID_REQUEST`.
+    pub fn validate(&self) -> Result<(), &'static str> {
+        validate_grant_fields(&self.client_id, Some(&self.permissions), false)
+    }
+}
+
+fn validate_grant_fields(
+    client_id: &str,
+    permissions: Option<&[String]>,
+    need_permissions: bool,
+) -> Result<(), &'static str> {
+    if client_id.trim().is_empty() {
+        return Err("client_id must not be empty");
+    }
+    if let Some(p) = permissions {
+        if need_permissions && p.is_empty() {
+            return Err("permissions must not be empty");
+        }
+        if p.iter().any(|name| name.trim().is_empty()) {
+            return Err("a permission name must not be blank");
+        }
+    }
+    Ok(())
+}
+
+/// Server to client: the `Grant` or `Revoke` with this `request_id` took effect.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct GrantAck {
+    pub request_id: String,
+}
+
+/// Client to server: list grants, optionally of one client and/or one service.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ListGrants {
+    pub request_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub client_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub service_id: Option<String>,
+}
+
+/// One client's permissions at one scope (`service_id` absent = tenant-wide).
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct GrantEntry {
+    pub client_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub service_id: Option<String>,
+    pub permissions: Vec<String>,
+}
+
+/// Server to client: the answer to `ListGrants`.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Grants {
+    pub request_id: String,
+    pub entries: Vec<GrantEntry>,
+}
+
 /// JSON control messages, sent as WebSocket text frames. Adjacently tagged
 /// (`{"type": ..., "data": {...}}`); unknown fields and unknown types are refused.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -527,4 +623,9 @@ pub enum ControlMessage {
     RangesChanged(RangesChanged),
     RangesUpdated(RangesUpdated),
     FlushEnd(FlushEnd),
+    Grant(Grant),
+    Revoke(Revoke),
+    GrantAck(GrantAck),
+    ListGrants(ListGrants),
+    Grants(Grants),
 }

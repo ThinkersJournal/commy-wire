@@ -750,6 +750,161 @@
       }
     },
     {
+      "properties": {
+        "type": {
+          "const": "Grant"
+        },
+        "data": {
+          "type": "object",
+          "required": [
+            "request_id",
+            "client_id",
+            "permissions"
+          ],
+          "properties": {
+            "request_id": {
+              "type": "string"
+            },
+            "client_id": {
+              "type": "string"
+            },
+            "service_id": {
+              "type": "string"
+            },
+            "permissions": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "Revoke"
+        },
+        "data": {
+          "type": "object",
+          "required": [
+            "request_id",
+            "client_id"
+          ],
+          "properties": {
+            "request_id": {
+              "type": "string"
+            },
+            "client_id": {
+              "type": "string"
+            },
+            "service_id": {
+              "type": "string"
+            },
+            "permissions": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "GrantAck"
+        },
+        "data": {
+          "type": "object",
+          "required": [
+            "request_id"
+          ],
+          "properties": {
+            "request_id": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "ListGrants"
+        },
+        "data": {
+          "type": "object",
+          "required": [
+            "request_id"
+          ],
+          "properties": {
+            "request_id": {
+              "type": "string"
+            },
+            "client_id": {
+              "type": "string"
+            },
+            "service_id": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "Grants"
+        },
+        "data": {
+          "type": "object",
+          "required": [
+            "request_id",
+            "entries"
+          ],
+          "properties": {
+            "request_id": {
+              "type": "string"
+            },
+            "entries": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "client_id",
+                  "permissions"
+                ],
+                "properties": {
+                  "client_id": {
+                    "type": "string"
+                  },
+                  "service_id": {
+                    "type": "string"
+                  },
+                  "permissions": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    {
       "$ref": "error.schema.json"
     }
   ],

@@ -4484,6 +4484,111 @@
           "reason": "FILL_TIMEOUT"
         }
       }
+    },
+    {
+      "name": "grant on one service",
+      "json": {
+        "type": "Grant",
+        "data": {
+          "request_id": "g1",
+          "client_id": "bob",
+          "service_id": "svc-1",
+          "permissions": [
+            "service:read",
+            "service:write"
+          ]
+        }
+      }
+    },
+    {
+      "name": "tenant-wide grant (shorthand for all services)",
+      "json": {
+        "type": "Grant",
+        "data": {
+          "request_id": "g2",
+          "client_id": "bob",
+          "permissions": [
+            "service:read"
+          ]
+        }
+      }
+    },
+    {
+      "name": "revoke one service entirely",
+      "json": {
+        "type": "Revoke",
+        "data": {
+          "request_id": "g3",
+          "client_id": "bob",
+          "service_id": "svc-1"
+        }
+      }
+    },
+    {
+      "name": "revoke named permissions at tenant scope",
+      "json": {
+        "type": "Revoke",
+        "data": {
+          "request_id": "g4",
+          "client_id": "bob",
+          "permissions": [
+            "service:write"
+          ]
+        }
+      }
+    },
+    {
+      "name": "grant acknowledged",
+      "json": {
+        "type": "GrantAck",
+        "data": {
+          "request_id": "g1"
+        }
+      }
+    },
+    {
+      "name": "list grants of a service",
+      "json": {
+        "type": "ListGrants",
+        "data": {
+          "request_id": "g5",
+          "service_id": "svc-1"
+        }
+      }
+    },
+    {
+      "name": "list all grants",
+      "json": {
+        "type": "ListGrants",
+        "data": {
+          "request_id": "g6"
+        }
+      }
+    },
+    {
+      "name": "grants listed",
+      "json": {
+        "type": "Grants",
+        "data": {
+          "request_id": "g5",
+          "entries": [
+            {
+              "client_id": "bob",
+              "service_id": "svc-1",
+              "permissions": [
+                "service:read",
+                "service:write"
+              ]
+            },
+            {
+              "client_id": "carol",
+              "permissions": [
+                "service:admin"
+              ]
+            }
+          ]
+        }
+      }
     }
   ],
   "invalid": [
@@ -4698,6 +4803,61 @@
         "type": "RotationFilled",
         "data": {
           "request_id": "q4"
+        }
+      }
+    },
+    {
+      "name": "grant without permissions",
+      "json": {
+        "type": "Grant",
+        "data": {
+          "request_id": "g1",
+          "client_id": "bob",
+          "service_id": "svc-1"
+        }
+      }
+    },
+    {
+      "name": "grant without client_id",
+      "json": {
+        "type": "Grant",
+        "data": {
+          "request_id": "g1",
+          "permissions": [
+            "service:read"
+          ]
+        }
+      }
+    },
+    {
+      "name": "revoke without client_id",
+      "json": {
+        "type": "Revoke",
+        "data": {
+          "request_id": "g3"
+        }
+      }
+    },
+    {
+      "name": "grants without entries",
+      "json": {
+        "type": "Grants",
+        "data": {
+          "request_id": "g5"
+        }
+      }
+    },
+    {
+      "name": "grant entry without permissions",
+      "json": {
+        "type": "Grants",
+        "data": {
+          "request_id": "g5",
+          "entries": [
+            {
+              "client_id": "bob"
+            }
+          ]
         }
       }
     }
@@ -8995,6 +9155,56 @@
           "service_id": "svc-1",
           "file_id": 3,
           "reason": "SOMETHING_NEW"
+        }
+      }
+    }
+  ],
+  "inconsistent_grants": [
+    {
+      "name": "grant with empty permission list",
+      "json": {
+        "type": "Grant",
+        "data": {
+          "request_id": "g1",
+          "client_id": "bob",
+          "service_id": "svc-1",
+          "permissions": []
+        }
+      }
+    },
+    {
+      "name": "grant with a blank permission",
+      "json": {
+        "type": "Grant",
+        "data": {
+          "request_id": "g1",
+          "client_id": "bob",
+          "permissions": [
+            " "
+          ]
+        }
+      }
+    },
+    {
+      "name": "grant with an empty client_id",
+      "json": {
+        "type": "Grant",
+        "data": {
+          "request_id": "g1",
+          "client_id": "",
+          "permissions": [
+            "service:read"
+          ]
+        }
+      }
+    },
+    {
+      "name": "revoke with an empty client_id",
+      "json": {
+        "type": "Revoke",
+        "data": {
+          "request_id": "g3",
+          "client_id": ""
         }
       }
     }
