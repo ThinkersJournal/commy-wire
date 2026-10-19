@@ -369,6 +369,74 @@ pub struct Loss {
     pub ranges: Vec<LossRange>,
 }
 
+/// A run of bytes inside a file, named without its data.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ByteRange {
+    pub offset: u64,
+    pub len: u64,
+}
+
+/// Most ranges one `RangesChanged` or `RangesUpdated` may carry. A flush with more is split into
+/// several messages, each getting its own `seq`.
+pub const MAX_RANGES_PER_MESSAGE: usize = 1024;
+
+/// Check a range list: 1 to [`MAX_RANGES_PER_MESSAGE`] ranges, none empty, none whose end overflows a
+/// u64, sorted by offset and not overlapping (adjacent is fine). A message that fails is answered
+/// `INVALID_REQUEST` (or dropped, when it came from the server).
+pub fn validate_ranges(ranges: &[ByteRange]) -> Result<(), &'static str> {
+    if ranges.is_empty() {
+        return Err("ranges must not be empty");
+    }
+    if ranges.len() > MAX_RANGES_PER_MESSAGE {
+        return Err("too many ranges in one message");
+    }
+    let mut prev_end = 0u64;
+    for r in ranges {
+        if r.len == 0 {
+            return Err("a range must cover at least one byte");
+        }
+        let Some(end) = r.offset.checked_add(r.len) else {
+            return Err("offset plus len overflows");
+        };
+        if r.offset < prev_end {
+            return Err("ranges must be sorted and must not overlap");
+        }
+        prev_end = end;
+    }
+    Ok(())
+}
+
+/// Client to server, from a **local** sender (it wrote into the shared mapping): these ranges
+/// changed. No data travels; the server reads the latest bytes from the file when it forwards.
+/// Answered with `FlushAck`.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct RangesChanged {
+    pub request_id: String,
+    pub file_id: u32,
+    pub ranges: Vec<ByteRange>,
+}
+
+/// Server to a **local** receiver: these ranges of the file changed, at `seq`. No data; the receiver
+/// already sees the bytes through its own mapping.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct RangesUpdated {
+    pub file_id: u32,
+    pub seq: u64,
+    pub ranges: Vec<ByteRange>,
+}
+
+/// Client to server, from a **remote** sender: the range frames for one flush are complete. The
+/// server assigns the flush one new `seq`, forwards it, and answers `FlushAck`.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct FlushEnd {
+    pub request_id: String,
+    pub file_id: u32,
+}
+
 /// JSON control messages, sent as WebSocket text frames. Adjacently tagged
 /// (`{"type": ..., "data": {...}}`); unknown fields and unknown types are refused.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -390,4 +458,7 @@ pub enum ControlMessage {
     RotationDrained(RotationDrained),
     RotationCommit(RotationCommit),
     Loss(Loss),
+    RangesChanged(RangesChanged),
+    RangesUpdated(RangesUpdated),
+    FlushEnd(FlushEnd),
 }

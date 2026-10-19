@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.2.4
+- Range forwarding messages (C3 contract): `RangesChanged`, `RangesUpdated`, `FlushEnd`, `ByteRange`, `validate_ranges`; `spec/forwarding.md`; schema and vectors. Additive.
+
 ## 0.2.3
 - Rotation messages (C3/C4 contract): `RotateRequest` (with `validate`), `RotationAccepted`, `RotationPending`, `RotationDrained`, `RotationCommit`, `Loss`; `RotateReason`, `LossKind`, `LossRange`; `spec/rotation.md`; schema and vectors. Additive (variants join a `#[non_exhaustive]` enum).
 
