@@ -325,7 +325,8 @@
             "rotation_id",
             "service_id",
             "file_id",
-            "deadline_ms"
+            "deadline_ms",
+            "fill_ms"
           ],
           "properties": {
             "rotation_id": {
@@ -340,6 +341,10 @@
               "maximum": 4294967295
             },
             "deadline_ms": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "fill_ms": {
               "type": "integer",
               "minimum": 0
             }
@@ -610,6 +615,134 @@
               "type": "integer",
               "minimum": 0,
               "maximum": 4294967295
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "RotationPrepared"
+        },
+        "data": {
+          "type": "object",
+          "required": [
+            "rotation_id",
+            "service_id",
+            "old_file_id",
+            "new_file_id",
+            "size"
+          ],
+          "properties": {
+            "rotation_id": {
+              "type": "string"
+            },
+            "service_id": {
+              "type": "string"
+            },
+            "old_file_id": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4294967295
+            },
+            "new_file_id": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4294967295
+            },
+            "size": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "path": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "RotationFilled"
+        },
+        "data": {
+          "type": "object",
+          "required": [
+            "request_id",
+            "rotation_id"
+          ],
+          "properties": {
+            "request_id": {
+              "type": "string"
+            },
+            "rotation_id": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "RotationAbort"
+        },
+        "data": {
+          "type": "object",
+          "required": [
+            "request_id",
+            "rotation_id"
+          ],
+          "properties": {
+            "request_id": {
+              "type": "string"
+            },
+            "rotation_id": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "RotationAborted"
+        },
+        "data": {
+          "type": "object",
+          "required": [
+            "rotation_id",
+            "service_id",
+            "file_id",
+            "reason"
+          ],
+          "properties": {
+            "rotation_id": {
+              "type": "string"
+            },
+            "service_id": {
+              "type": "string"
+            },
+            "file_id": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4294967295
+            },
+            "reason": {
+              "type": "string",
+              "description": "Known: REQUESTER_ABORT, FILL_TIMEOUT, SERVER_ERROR. Treat any other value as an abandoned rotation.",
+              "examples": [
+                "REQUESTER_ABORT",
+                "FILL_TIMEOUT",
+                "SERVER_ERROR"
+              ]
             }
           },
           "additionalProperties": false

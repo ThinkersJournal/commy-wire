@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.3.0 (breaking)
+- Resize follows plan Q11(b), prepare and commit: the requester fills the new file. `RotationPending` gains `fill_ms` (required). New: `RotationPrepared` (server to the requester only), `RotationFilled`, `RotationAbort`, `RotationAborted`, `AbortReason`. `spec/rotation.md` is rewritten for RESIZE. The 0.2.x rotation messages described a resize in which the server copied `min(old, new)` bytes itself, which was not the approved design.
+
 ## 0.2.4
 - Range forwarding messages (C3 contract): `RangesChanged`, `RangesUpdated`, `FlushEnd`, `ByteRange`, `validate_ranges`; `spec/forwarding.md`; schema and vectors. Additive.
 

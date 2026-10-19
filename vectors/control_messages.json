@@ -166,7 +166,8 @@
           "rotation_id": "rot-1",
           "service_id": "svc-1",
           "file_id": 3,
-          "deadline_ms": 5000
+          "deadline_ms": 5000,
+          "fill_ms": 30000
         }
       }
     },
@@ -4424,6 +4425,65 @@
           ]
         }
       }
+    },
+    {
+      "name": "rotation prepared for a local requester",
+      "json": {
+        "type": "RotationPrepared",
+        "data": {
+          "rotation_id": "rot-1",
+          "service_id": "svc-1",
+          "old_file_id": 3,
+          "new_file_id": 4,
+          "size": 1048576,
+          "path": "/srv/commy/tenant_acme/service_new.mem"
+        }
+      }
+    },
+    {
+      "name": "rotation prepared for a remote requester",
+      "json": {
+        "type": "RotationPrepared",
+        "data": {
+          "rotation_id": "rot-1",
+          "service_id": "svc-1",
+          "old_file_id": 3,
+          "new_file_id": 4,
+          "size": 1048576
+        }
+      }
+    },
+    {
+      "name": "rotation filled",
+      "json": {
+        "type": "RotationFilled",
+        "data": {
+          "request_id": "q4",
+          "rotation_id": "rot-1"
+        }
+      }
+    },
+    {
+      "name": "rotation abort",
+      "json": {
+        "type": "RotationAbort",
+        "data": {
+          "request_id": "q5",
+          "rotation_id": "rot-1"
+        }
+      }
+    },
+    {
+      "name": "rotation aborted (fill timeout)",
+      "json": {
+        "type": "RotationAborted",
+        "data": {
+          "rotation_id": "rot-1",
+          "service_id": "svc-1",
+          "file_id": 3,
+          "reason": "FILL_TIMEOUT"
+        }
+      }
     }
   ],
   "invalid": [
@@ -4605,6 +4665,39 @@
         "type": "FlushEnd",
         "data": {
           "request_id": "f2"
+        }
+      }
+    },
+    {
+      "name": "rotation pending without fill_ms",
+      "json": {
+        "type": "RotationPending",
+        "data": {
+          "rotation_id": "rot-1",
+          "service_id": "svc-1",
+          "file_id": 3,
+          "deadline_ms": 5000
+        }
+      }
+    },
+    {
+      "name": "rotation prepared without new_file_id",
+      "json": {
+        "type": "RotationPrepared",
+        "data": {
+          "rotation_id": "rot-1",
+          "service_id": "svc-1",
+          "old_file_id": 3,
+          "size": 4096
+        }
+      }
+    },
+    {
+      "name": "rotation filled without rotation_id",
+      "json": {
+        "type": "RotationFilled",
+        "data": {
+          "request_id": "q4"
         }
       }
     }
@@ -8888,6 +8981,20 @@
               "len": 1
             }
           ]
+        }
+      }
+    }
+  ],
+  "tolerated_unknown_abort_reasons": [
+    {
+      "name": "abort reason from a newer server",
+      "json": {
+        "type": "RotationAborted",
+        "data": {
+          "rotation_id": "rot-1",
+          "service_id": "svc-1",
+          "file_id": 3,
+          "reason": "SOMETHING_NEW"
         }
       }
     }

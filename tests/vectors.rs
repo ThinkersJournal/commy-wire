@@ -262,3 +262,19 @@ fn valid_range_lists_pass_validation() {
 fn the_range_cap_is_1024() {
     assert_eq!(commy_wire::MAX_RANGES_PER_MESSAGE, 1024);
 }
+
+#[test]
+fn an_unknown_abort_reason_parses_as_unknown() {
+    let v = load("control_messages.json");
+    let cases = v["tolerated_unknown_abort_reasons"].as_array().unwrap();
+    assert!(!cases.is_empty());
+    for c in cases {
+        let name = c["name"].as_str().unwrap();
+        let msg: ControlMessage = serde_json::from_value(c["json"].clone())
+            .unwrap_or_else(|e| panic!("{name} must parse: {e}"));
+        let ControlMessage::RotationAborted(a) = msg else {
+            panic!("{name}: not a RotationAborted");
+        };
+        assert_eq!(a.reason, commy_wire::AbortReason::Unknown, "{name}");
+    }
+}
