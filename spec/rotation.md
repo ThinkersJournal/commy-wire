@@ -86,3 +86,24 @@ Every request, grant and refusal is written to the server's audit log.
 The Rust type carries this as `LossKind::Unknown` (deserialized from any unrecognised kind); the JSON
 Schema therefore accepts any string for `Loss.kind`. Vectors: `tolerated_unknown_loss_kinds` in
 `vectors/control_messages.json`.
+
+## Prepare and commit: clarifications (SDK review)
+
+- **Terminal state.** A `rotation_id` ends at the **first** of `RotationCommit` or `RotationAborted`.
+  A receiver ignores any later message carrying the same `rotation_id` (a second commit, or an abort
+  after a commit, or the reverse).
+- **Abort and stragglers.** An abort drops no one. Members that missed the drain deadline are **kept**:
+  nothing was switched, so nothing was lost. `ROTATION_STRAGGLER` is sent only at a commit. After an
+  abort every member, drained or not, resumes writing to the old file.
+- **Remote fill.** Range frames for `new_file_id` arrive before any `Resync` or mirror of that file
+  exists. Their offsets are **absolute positions in the new file**. `seq` restarts at 0 for the new file,
+  and the `FlushEnd` is answered by a `FlushAck` that echoes its `request_id` with `seq` 0; that 0 is the
+  new file's first sequence number and is never "stale".
+- **Local fill.** The requester opens `path` under the same rules as `GetServiceFilePath` (a regular,
+  non-symlink file) and writes it directly. No nonce handshake is needed to fill; the handshake for the
+  new file happens after the commit, through `GetServiceFilePath`.
+- **Requester timing.** The requester is subject to the drain deadline like every member: a requester
+  that is a member must send `RotationDrained` within `deadline_ms`. The server sends
+  `RotationPrepared` when the barrier ends whether or not the requester drained, so a requester that
+  did not drain can still fill the file, but it is then dropped as a straggler at the commit.
+  `fill_ms` runs from the SDK's receipt of `RotationPrepared`.
