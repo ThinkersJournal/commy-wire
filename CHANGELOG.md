@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.3.2
+- `SetLocalMapping` and `LocalMappingAck`: an administrator opens (or closes) a service to local mapping; `spec/control-messages.md`, schema and vectors. Additive.
+
 ## 0.3.1
 - Service-scoped grants (C10 contract): `Grant`, `Revoke` (both with `validate`), `GrantAck`, `ListGrants`, `Grants`, `GrantEntry`; `spec/grants.md`; schema and vectors. Additive.
 
