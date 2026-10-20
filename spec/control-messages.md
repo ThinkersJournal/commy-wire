@@ -6,7 +6,7 @@ Schema: `schema/control.schema.json`. Vectors: `vectors/control_messages.json`.
 
 | Type           | Direction        | Fields                                                                  |
 |----------------|------------------|-------------------------------------------------------------------------|
-| `Authenticate` | client to server | `request_id`, `protocol_version` (u32, currently 1), `tenant_id`, `client_id`, `auth_method`, `credentials` |
+| `Authenticate` | client to server | `request_id`, `protocol_version` (u32, currently 1), `tenant_id`, optional `client_version`, optional `client_id` and `dev_scopes` (development servers only), and the credentials: `method` plus its fields (`api_key`: `key`; `jwt`: `token`; `basic`: `username`, `password`; `custom`: `data`) |
 | `FlushAck`     | server to client | `request_id`, `file_id`, `seq` (new sequence after the flush)           |
 | `Resync`       | client to server | `request_id`, `file_id`                                                  |
 | `ResyncDone`   | server to client | `request_id`, `file_id`, `seq`, `size`                                   |
@@ -63,3 +63,19 @@ service_id, enabled}`. It needs `service:admin` on the service (`PERMISSION_DENI
 `GetServiceFilePath` never offers `path` and `nonce_path`, whatever the caller's grants, because the
 server cannot see stores into a mapping and cannot enforce write permission there. Closing stops
 future offers; a mapping already open ends at the next rotation.
+
+### Authentication
+
+`Authenticate` is the first message on a connection. The credential fields sit beside `method` in `data`:
+
+```json
+{"type":"Authenticate","data":{"request_id":"a1","protocol_version":1,"tenant_id":"acme","client_version":"0.10.2","method":"api_key","key":"..."}}
+```
+
+- **Identity comes from the credential.** A production server takes the client's identity (the `client_id` its grants are filed under) from the credential's subject, never from the request. `client_id` in the request is a *hint for development servers only* (`COMMY_ALLOW_DEV_AUTH`): a production server ignores or refuses it.
+- `dev_scopes` is likewise development-only: exactly these scopes (`[]` for none) instead of administrator.
+- `protocol_version` must be one the server supports, else `UNSUPPORTED_VERSION`. Failures to authenticate are `AuthenticationResult{success:false}`; a malformed request is `INVALID_REQUEST`.
+- Validation (`Authenticate::validate`): `tenant_id` is 1 to 64 characters of letters, digits, `_` and `-`; `client_id` 1 to 128 of letters, digits and `_ - . @ :`; an API key, token, user name or password is never empty.
+- Secrets never appear in `Debug` output, in logs, or in `AuthenticationResult`.
+
+`AuthenticationResult{request_id, success, message, server_version, client_id?, permissions?, expires_in_seconds?}` answers it. `client_id` is the identity the session's grants are filed under (the credential's subject, or the development hint).

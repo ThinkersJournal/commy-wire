@@ -14,9 +14,7 @@
             "request_id",
             "protocol_version",
             "tenant_id",
-            "client_id",
-            "auth_method",
-            "credentials"
+            "method"
           ],
           "properties": {
             "request_id": {
@@ -28,19 +26,89 @@
               "maximum": 4294967295
             },
             "tenant_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,64}$"
+            },
+            "client_version": {
               "type": "string"
             },
             "client_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_.@:-]{1,128}$",
+              "description": "A hint for development servers only; a production server takes the identity from the credential."
+            },
+            "dev_scopes": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Development servers only: exactly these scopes ([] for none) instead of administrator."
+            },
+            "method": {
+              "enum": [
+                "api_key",
+                "jwt",
+                "basic",
+                "custom"
+              ]
+            },
+            "key": {
               "type": "string"
             },
-            "auth_method": {
+            "token": {
               "type": "string"
             },
-            "credentials": {
+            "username": {
               "type": "string"
-            }
+            },
+            "password": {
+              "type": "string"
+            },
+            "data": {}
           },
-          "additionalProperties": false
+          "oneOf": [
+            {
+              "properties": {
+                "method": {
+                  "const": "api_key"
+                }
+              },
+              "required": [
+                "key"
+              ]
+            },
+            {
+              "properties": {
+                "method": {
+                  "const": "jwt"
+                }
+              },
+              "required": [
+                "token"
+              ]
+            },
+            {
+              "properties": {
+                "method": {
+                  "const": "basic"
+                }
+              },
+              "required": [
+                "username",
+                "password"
+              ]
+            },
+            {
+              "properties": {
+                "method": {
+                  "const": "custom"
+                }
+              },
+              "required": [
+                "data"
+              ]
+            }
+          ]
         }
       }
     },
@@ -952,6 +1020,50 @@
             },
             "enabled": {
               "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "AuthenticationResult"
+        },
+        "data": {
+          "type": "object",
+          "required": [
+            "request_id",
+            "success",
+            "message",
+            "server_version"
+          ],
+          "properties": {
+            "request_id": {
+              "type": "string"
+            },
+            "success": {
+              "type": "boolean"
+            },
+            "message": {
+              "type": "string"
+            },
+            "server_version": {
+              "type": "string"
+            },
+            "client_id": {
+              "type": "string"
+            },
+            "permissions": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "expires_in_seconds": {
+              "type": "integer",
+              "minimum": 0
             }
           },
           "additionalProperties": false

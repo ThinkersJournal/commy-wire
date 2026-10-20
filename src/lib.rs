@@ -140,16 +140,141 @@ impl ErrorCode {
     }
 }
 
-/// Client to server. Carries the protocol version.
+/// The protocol version a client sends in [`Authenticate`] and this crate describes.
+pub const PROTOCOL_VERSION: u32 = 1;
+
+/// Longest `client_id` accepted.
+pub const MAX_CLIENT_ID_LEN: usize = 128;
+
+/// Longest `tenant_id` accepted.
+pub const MAX_TENANT_ID_LEN: usize = 64;
+
+/// How a client proves who it is. Tagged by `method`; the fields sit beside the tag in
+/// [`Authenticate`]. Secrets are redacted from `Debug` output.
+#[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "method")]
+pub enum Credentials {
+    /// A bearer API key.
+    #[serde(rename = "api_key")]
+    ApiKey { key: String },
+    /// A JSON Web Token.
+    #[serde(rename = "jwt")]
+    Jwt { token: String },
+    /// A user name and password.
+    #[serde(rename = "basic")]
+    Basic { username: String, password: String },
+    /// Anything a custom verifier on the server understands.
+    #[serde(rename = "custom")]
+    Custom { data: serde_json::Value },
+}
+
+impl std::fmt::Debug for Credentials {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Credentials::ApiKey { .. } => f
+                .debug_struct("ApiKey")
+                .field("key", &"<redacted>")
+                .finish(),
+            Credentials::Jwt { .. } => f.debug_struct("Jwt").field("token", &"<redacted>").finish(),
+            Credentials::Basic { username, .. } => f
+                .debug_struct("Basic")
+                .field("username", username)
+                .field("password", &"<redacted>")
+                .finish(),
+            Credentials::Custom { .. } => f
+                .debug_struct("Custom")
+                .field("data", &"<redacted>")
+                .finish(),
+        }
+    }
+}
+
+impl Credentials {
+    /// The wire name of the method.
+    pub fn method(&self) -> &'static str {
+        match self {
+            Credentials::ApiKey { .. } => "api_key",
+            Credentials::Jwt { .. } => "jwt",
+            Credentials::Basic { .. } => "basic",
+            Credentials::Custom { .. } => "custom",
+        }
+    }
+}
+
+/// Client to server: authenticate to a tenant. The first message on a connection.
+///
+/// `client_id` is a **hint for development servers only**: a production server takes the client's
+/// identity from the credential (its subject) and ignores or refuses a self-claimed one. `dev_scopes`
+/// is likewise development-only: ask for exactly these scopes (`[]` for none) instead of administrator.
+/// Unknown fields are ignored, because the credential fields are flattened next to the others.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 pub struct Authenticate {
     pub request_id: String,
     pub protocol_version: u32,
     pub tenant_id: String,
-    pub client_id: String,
-    pub auth_method: String,
-    pub credentials: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub client_version: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub client_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub dev_scopes: Option<Vec<String>>,
+    #[serde(flatten)]
+    pub credentials: Credentials,
+}
+
+impl Authenticate {
+    /// Check the fields. A request that fails is answered `INVALID_REQUEST`.
+    pub fn validate(&self) -> Result<(), &'static str> {
+        let t = &self.tenant_id;
+        if t.is_empty()
+            || t.len() > MAX_TENANT_ID_LEN
+            || !t
+                .chars()
+                .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
+        {
+            return Err("tenant_id must be 1 to 64 characters of letters, digits, _ and -");
+        }
+        if let Some(c) = &self.client_id {
+            if c.is_empty()
+                || c.len() > MAX_CLIENT_ID_LEN
+                || !c.chars().all(|ch| {
+                    ch.is_ascii_alphanumeric() || matches!(ch, '_' | '-' | '.' | '@' | ':')
+                })
+            {
+                return Err(
+                    "client_id must be 1 to 128 characters of letters, digits and _ - . @ :",
+                );
+            }
+        }
+        match &self.credentials {
+            Credentials::ApiKey { key } if key.is_empty() => Err("the api key must not be empty"),
+            Credentials::Jwt { token } if token.is_empty() => Err("the token must not be empty"),
+            Credentials::Basic { username, password }
+                if username.is_empty() || password.is_empty() =>
+            {
+                Err("username and password must not be empty")
+            }
+            _ => Ok(()),
+        }
+    }
+}
+
+/// Server to client: the answer to [`Authenticate`]. Never carries a secret.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct AuthenticationResult {
+    pub request_id: String,
+    pub success: bool,
+    pub message: String,
+    pub server_version: String,
+    /// The identity this session's grants are filed under (the credential's subject).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub client_id: Option<String>,
+    /// The scopes the session holds, e.g. `service:read` (informational).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub permissions: Option<Vec<String>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub expires_in_seconds: Option<u64>,
 }
 
 /// Server to client: the flush identified by `request_id` is applied; `seq` is the new sequence.
@@ -624,6 +749,7 @@ pub struct LocalMappingAck {
 #[non_exhaustive]
 pub enum ControlMessage {
     Authenticate(Authenticate),
+    AuthenticationResult(AuthenticationResult),
     FlushAck(FlushAck),
     Resync(Resync),
     ResyncDone(ResyncDone),
