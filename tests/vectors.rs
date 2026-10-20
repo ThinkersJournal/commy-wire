@@ -351,10 +351,15 @@ fn secrets_never_appear_in_debug_output() {
         let msg: ControlMessage = serde_json::from_value(c["json"].clone()).unwrap();
         if let ControlMessage::Authenticate(a) = &msg {
             let text = format!("{a:?} {msg:?}");
-            for secret in ["k-123", "eyJhbGciOi.payload.sig", "\"pw\"", "anything"] {
+            for (i, secret) in ["k-123", "eyJhbGciOi.payload.sig", "\"pw\"", "anything"]
+                .iter()
+                .enumerate()
+            {
+                // The failure message names the vector and the secret's index only: neither the
+                // secret nor the text that leaked it may reach an assertion message or a log.
                 assert!(
                     !text.contains(secret),
-                    "{} leaks {secret}: {text}",
+                    "{}: the Debug output contains secret number {i}",
                     c["name"]
                 );
             }
