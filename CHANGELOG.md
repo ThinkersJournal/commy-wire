@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.4.1
+- Repository metadata only: `.github/CODEOWNERS` (CodeRipper WSP-001). No code, spec, schema or vector change.
+
 ## 0.4.0 (breaking)
 - `Authenticate` carries real credentials: `Credentials` (`api_key`, `jwt`, `basic`, `custom`, tagged by `method`, flattened beside the other fields), optional `client_version`, optional development-only `client_id` and `dev_scopes`; `Authenticate::validate`; secrets redacted from `Debug`. The earlier `auth_method` / `credentials` string pair is gone. New `AuthenticationResult`, `PROTOCOL_VERSION` (1). Spec section "Authentication", schema and vectors. R1 gate item 1: the wire freeze needs `Authenticate` and its result defined here, not ad hoc in the server.
 
