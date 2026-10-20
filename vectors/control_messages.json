@@ -4589,6 +4589,39 @@
           ]
         }
       }
+    },
+    {
+      "name": "open a service to local mapping",
+      "json": {
+        "type": "SetLocalMapping",
+        "data": {
+          "request_id": "m1",
+          "service_id": "svc-1",
+          "enabled": true
+        }
+      }
+    },
+    {
+      "name": "close a service to local mapping",
+      "json": {
+        "type": "SetLocalMapping",
+        "data": {
+          "request_id": "m2",
+          "service_id": "svc-1",
+          "enabled": false
+        }
+      }
+    },
+    {
+      "name": "local mapping acknowledged",
+      "json": {
+        "type": "LocalMappingAck",
+        "data": {
+          "request_id": "m1",
+          "service_id": "svc-1",
+          "enabled": true
+        }
+      }
     }
   ],
   "invalid": [
@@ -4858,6 +4891,47 @@
               "client_id": "bob"
             }
           ]
+        }
+      }
+    },
+    {
+      "name": "set local mapping without enabled",
+      "json": {
+        "type": "SetLocalMapping",
+        "data": {
+          "request_id": "m1",
+          "service_id": "svc-1"
+        }
+      }
+    },
+    {
+      "name": "set local mapping with a non-boolean enabled",
+      "json": {
+        "type": "SetLocalMapping",
+        "data": {
+          "request_id": "m1",
+          "service_id": "svc-1",
+          "enabled": "yes"
+        }
+      }
+    },
+    {
+      "name": "set local mapping without service_id",
+      "json": {
+        "type": "SetLocalMapping",
+        "data": {
+          "request_id": "m1",
+          "enabled": true
+        }
+      }
+    },
+    {
+      "name": "local mapping ack without enabled",
+      "json": {
+        "type": "LocalMappingAck",
+        "data": {
+          "request_id": "m1",
+          "service_id": "svc-1"
         }
       }
     }

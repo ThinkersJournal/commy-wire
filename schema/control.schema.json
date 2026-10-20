@@ -905,6 +905,60 @@
       }
     },
     {
+      "properties": {
+        "type": {
+          "const": "SetLocalMapping"
+        },
+        "data": {
+          "type": "object",
+          "required": [
+            "request_id",
+            "service_id",
+            "enabled"
+          ],
+          "properties": {
+            "request_id": {
+              "type": "string"
+            },
+            "service_id": {
+              "type": "string"
+            },
+            "enabled": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "LocalMappingAck"
+        },
+        "data": {
+          "type": "object",
+          "required": [
+            "request_id",
+            "service_id",
+            "enabled"
+          ],
+          "properties": {
+            "request_id": {
+              "type": "string"
+            },
+            "service_id": {
+              "type": "string"
+            },
+            "enabled": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    {
       "$ref": "error.schema.json"
     }
   ],

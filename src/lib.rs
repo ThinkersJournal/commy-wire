@@ -595,6 +595,28 @@ pub struct Grants {
     pub entries: Vec<GrantEntry>,
 }
 
+/// Client to server: open (or close) a service to local mapping. Needs `service:admin` on the
+/// service. A service is closed to local mapping until an administrator opens it, because the server
+/// cannot see stores into a mapping: only operating-system file permissions guard it. While open, a
+/// client with a write grant is offered `path` and `nonce_path` by `GetServiceFilePath`; closing it
+/// stops future offers (an existing mapping ends at the next rotation).
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct SetLocalMapping {
+    pub request_id: String,
+    pub service_id: String,
+    pub enabled: bool,
+}
+
+/// Server to client: the `SetLocalMapping` with this `request_id` took effect.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct LocalMappingAck {
+    pub request_id: String,
+    pub service_id: String,
+    pub enabled: bool,
+}
+
 /// JSON control messages, sent as WebSocket text frames. Adjacently tagged
 /// (`{"type": ..., "data": {...}}`); unknown fields and unknown types are refused.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -628,4 +650,6 @@ pub enum ControlMessage {
     GrantAck(GrantAck),
     ListGrants(ListGrants),
     Grants(Grants),
+    SetLocalMapping(SetLocalMapping),
+    LocalMappingAck(LocalMappingAck),
 }

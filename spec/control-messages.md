@@ -54,3 +54,12 @@ range frames. Nothing here weakens authentication: the session must already be a
 
 A file-size match or an IP match alone is not proof of the same filesystem view; the nonce is.
 Read-only grantees never get a path: they use WSS even on the same machine.
+
+### Opening a service to local mapping
+
+`SetLocalMapping{request_id, service_id, enabled}` is answered by `LocalMappingAck{request_id,
+service_id, enabled}`. It needs `service:admin` on the service (`PERMISSION_DENIED` otherwise,
+`NOT_FOUND` for an unknown service). A service starts **closed**: until an administrator opens it,
+`GetServiceFilePath` never offers `path` and `nonce_path`, whatever the caller's grants, because the
+server cannot see stores into a mapping and cannot enforce write permission there. Closing stops
+future offers; a mapping already open ends at the next rotation.
