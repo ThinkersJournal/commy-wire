@@ -2,20 +2,6 @@
   "_comment": "Golden vectors for JSON control messages. Each valid message must parse and re-serialize to an equal JSON value; each invalid one must be refused. See spec/control-messages.md.",
   "valid": [
     {
-      "name": "authenticate",
-      "json": {
-        "type": "Authenticate",
-        "data": {
-          "request_id": "r1",
-          "protocol_version": 1,
-          "tenant_id": "acme",
-          "client_id": "c-1",
-          "auth_method": "api_key",
-          "credentials": "k"
-        }
-      }
-    },
-    {
       "name": "flush ack",
       "json": {
         "type": "FlushAck",
@@ -4622,35 +4608,129 @@
           "enabled": true
         }
       }
+    },
+    {
+      "name": "authenticate with an api key",
+      "json": {
+        "type": "Authenticate",
+        "data": {
+          "request_id": "a1",
+          "protocol_version": 1,
+          "tenant_id": "acme",
+          "client_version": "0.10.2",
+          "method": "api_key",
+          "key": "k-123"
+        }
+      }
+    },
+    {
+      "name": "authenticate with a jwt",
+      "json": {
+        "type": "Authenticate",
+        "data": {
+          "request_id": "a1",
+          "protocol_version": 1,
+          "tenant_id": "acme",
+          "client_version": "0.10.2",
+          "method": "jwt",
+          "token": "eyJhbGciOi.payload.sig"
+        }
+      }
+    },
+    {
+      "name": "authenticate with a username and password",
+      "json": {
+        "type": "Authenticate",
+        "data": {
+          "request_id": "a1",
+          "protocol_version": 1,
+          "tenant_id": "acme",
+          "client_version": "0.10.2",
+          "method": "basic",
+          "username": "alice",
+          "password": "pw"
+        }
+      }
+    },
+    {
+      "name": "authenticate with custom data",
+      "json": {
+        "type": "Authenticate",
+        "data": {
+          "request_id": "a1",
+          "protocol_version": 1,
+          "tenant_id": "acme",
+          "client_version": "0.10.2",
+          "method": "custom",
+          "data": {
+            "anything": [
+              1,
+              2
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "authenticate naming a client and asking for no scopes (development servers)",
+      "json": {
+        "type": "Authenticate",
+        "data": {
+          "request_id": "a1",
+          "protocol_version": 1,
+          "tenant_id": "acme",
+          "client_version": "0.10.2",
+          "client_id": "alice@example.com",
+          "dev_scopes": [],
+          "method": "api_key",
+          "key": "k"
+        }
+      }
+    },
+    {
+      "name": "authenticate without client_version",
+      "json": {
+        "type": "Authenticate",
+        "data": {
+          "request_id": "a1",
+          "protocol_version": 1,
+          "tenant_id": "acme",
+          "method": "api_key",
+          "key": "k"
+        }
+      }
+    },
+    {
+      "name": "authentication succeeded",
+      "json": {
+        "type": "AuthenticationResult",
+        "data": {
+          "request_id": "a1",
+          "success": true,
+          "message": "ok",
+          "server_version": "0.15.0",
+          "client_id": "alice@example.com",
+          "permissions": [
+            "service:read"
+          ],
+          "expires_in_seconds": 3600
+        }
+      }
+    },
+    {
+      "name": "authentication refused",
+      "json": {
+        "type": "AuthenticationResult",
+        "data": {
+          "request_id": "a1",
+          "success": false,
+          "message": "bad credentials",
+          "server_version": "0.15.0"
+        }
+      }
     }
   ],
   "invalid": [
-    {
-      "name": "authenticate without protocol_version",
-      "json": {
-        "type": "Authenticate",
-        "data": {
-          "request_id": "r1",
-          "tenant_id": "acme",
-          "client_id": "c-1",
-          "auth_method": "api_key",
-          "credentials": "k"
-        }
-      }
-    },
-    {
-      "name": "authenticate without request_id",
-      "json": {
-        "type": "Authenticate",
-        "data": {
-          "protocol_version": 1,
-          "tenant_id": "acme",
-          "client_id": "c-1",
-          "auth_method": "api_key",
-          "credentials": "k"
-        }
-      }
-    },
     {
       "name": "flush ack with negative seq",
       "json": {
@@ -4932,6 +5012,138 @@
         "data": {
           "request_id": "m1",
           "service_id": "svc-1"
+        }
+      }
+    },
+    {
+      "name": "authenticate without protocol_version",
+      "json": {
+        "type": "Authenticate",
+        "data": {
+          "request_id": "a1",
+          "tenant_id": "acme",
+          "client_version": "0.10.2",
+          "method": "api_key",
+          "key": "k"
+        }
+      }
+    },
+    {
+      "name": "authenticate without request_id",
+      "json": {
+        "type": "Authenticate",
+        "data": {
+          "protocol_version": 1,
+          "tenant_id": "acme",
+          "client_version": "0.10.2",
+          "method": "api_key",
+          "key": "k"
+        }
+      }
+    },
+    {
+      "name": "authenticate without a method",
+      "json": {
+        "type": "Authenticate",
+        "data": {
+          "request_id": "a1",
+          "protocol_version": 1,
+          "tenant_id": "acme",
+          "client_version": "0.10.2",
+          "key": "k"
+        }
+      }
+    },
+    {
+      "name": "authenticate with an unknown method",
+      "json": {
+        "type": "Authenticate",
+        "data": {
+          "request_id": "a1",
+          "protocol_version": 1,
+          "tenant_id": "acme",
+          "client_version": "0.10.2",
+          "method": "kerberos",
+          "ticket": "t"
+        }
+      }
+    },
+    {
+      "name": "api key method without a key",
+      "json": {
+        "type": "Authenticate",
+        "data": {
+          "request_id": "a1",
+          "protocol_version": 1,
+          "tenant_id": "acme",
+          "client_version": "0.10.2",
+          "method": "api_key"
+        }
+      }
+    },
+    {
+      "name": "jwt method without a token",
+      "json": {
+        "type": "Authenticate",
+        "data": {
+          "request_id": "a1",
+          "protocol_version": 1,
+          "tenant_id": "acme",
+          "client_version": "0.10.2",
+          "method": "jwt"
+        }
+      }
+    },
+    {
+      "name": "basic method without a password",
+      "json": {
+        "type": "Authenticate",
+        "data": {
+          "request_id": "a1",
+          "protocol_version": 1,
+          "tenant_id": "acme",
+          "client_version": "0.10.2",
+          "method": "basic",
+          "username": "alice"
+        }
+      }
+    },
+    {
+      "name": "authenticate with a non-list dev_scopes",
+      "json": {
+        "type": "Authenticate",
+        "data": {
+          "request_id": "a1",
+          "protocol_version": 1,
+          "tenant_id": "acme",
+          "client_version": "0.10.2",
+          "method": "api_key",
+          "key": "k",
+          "dev_scopes": "admin"
+        }
+      }
+    },
+    {
+      "name": "authentication result without success",
+      "json": {
+        "type": "AuthenticationResult",
+        "data": {
+          "request_id": "a1",
+          "message": "ok",
+          "server_version": "0.15.0"
+        }
+      }
+    },
+    {
+      "name": "authentication result with an unknown field",
+      "json": {
+        "type": "AuthenticationResult",
+        "data": {
+          "request_id": "a1",
+          "success": true,
+          "message": "ok",
+          "server_version": "0.15.0",
+          "token": "leak"
         }
       }
     }
@@ -9279,6 +9491,80 @@
         "data": {
           "request_id": "g3",
           "client_id": ""
+        }
+      }
+    }
+  ],
+  "inconsistent_authenticate": [
+    {
+      "name": "empty tenant id",
+      "json": {
+        "type": "Authenticate",
+        "data": {
+          "request_id": "a1",
+          "protocol_version": 1,
+          "tenant_id": "",
+          "client_version": "0.10.2",
+          "method": "api_key",
+          "key": "k"
+        }
+      }
+    },
+    {
+      "name": "tenant id with a path separator",
+      "json": {
+        "type": "Authenticate",
+        "data": {
+          "request_id": "a1",
+          "protocol_version": 1,
+          "tenant_id": "a/b",
+          "client_version": "0.10.2",
+          "method": "api_key",
+          "key": "k"
+        }
+      }
+    },
+    {
+      "name": "client id with a space",
+      "json": {
+        "type": "Authenticate",
+        "data": {
+          "request_id": "a1",
+          "protocol_version": 1,
+          "tenant_id": "acme",
+          "client_version": "0.10.2",
+          "client_id": "a b",
+          "method": "api_key",
+          "key": "k"
+        }
+      }
+    },
+    {
+      "name": "client id over 128 characters",
+      "json": {
+        "type": "Authenticate",
+        "data": {
+          "request_id": "a1",
+          "protocol_version": 1,
+          "tenant_id": "acme",
+          "client_version": "0.10.2",
+          "client_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "method": "api_key",
+          "key": "k"
+        }
+      }
+    },
+    {
+      "name": "empty api key",
+      "json": {
+        "type": "Authenticate",
+        "data": {
+          "request_id": "a1",
+          "protocol_version": 1,
+          "tenant_id": "acme",
+          "client_version": "0.10.2",
+          "method": "api_key",
+          "key": ""
         }
       }
     }

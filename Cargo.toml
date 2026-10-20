@@ -1,6 +1,6 @@
 [package]
 name = "commy-wire"
-version = "0.3.2"
+version = "0.4.0"
 edition = "2021"
 rust-version = "1.94"
 description = "Commy wire contract (spec, JSON Schema, golden vectors, shared Rust wire types)."
@@ -12,6 +12,6 @@ categories = ["network-programming"]
 
 [dependencies]
 serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.154"
 
 [dev-dependencies]
-serde_json = "1.0.154"

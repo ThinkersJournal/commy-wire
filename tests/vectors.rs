@@ -313,3 +313,61 @@ fn consistent_grant_requests_pass_validation() {
     }
     assert_eq!(checked, 4);
 }
+
+#[test]
+fn inconsistent_authenticate_requests_parse_but_fail_validation() {
+    let v = load("control_messages.json");
+    let cases = v["inconsistent_authenticate"].as_array().unwrap();
+    assert!(!cases.is_empty());
+    for c in cases {
+        let name = c["name"].as_str().unwrap();
+        let msg: ControlMessage = serde_json::from_value(c["json"].clone())
+            .unwrap_or_else(|e| panic!("{name} must parse: {e}"));
+        let ControlMessage::Authenticate(a) = msg else {
+            panic!("{name}: not an Authenticate");
+        };
+        assert!(a.validate().is_err(), "{name} must fail validation");
+    }
+}
+
+#[test]
+fn consistent_authenticate_requests_pass_validation() {
+    let v = load("control_messages.json");
+    let mut checked = 0;
+    for c in v["valid"].as_array().unwrap() {
+        let msg: ControlMessage = serde_json::from_value(c["json"].clone()).unwrap();
+        if let ControlMessage::Authenticate(a) = msg {
+            assert!(a.validate().is_ok(), "{}", c["name"]);
+            checked += 1;
+        }
+    }
+    assert_eq!(checked, 6);
+}
+
+#[test]
+fn secrets_never_appear_in_debug_output() {
+    let v = load("control_messages.json");
+    for c in v["valid"].as_array().unwrap() {
+        let msg: ControlMessage = serde_json::from_value(c["json"].clone()).unwrap();
+        if let ControlMessage::Authenticate(a) = &msg {
+            let text = format!("{a:?} {msg:?}");
+            for (i, secret) in ["k-123", "eyJhbGciOi.payload.sig", "\"pw\"", "anything"]
+                .iter()
+                .enumerate()
+            {
+                // The failure message names the vector and the secret's index only: neither the
+                // secret nor the text that leaked it may reach an assertion message or a log.
+                assert!(
+                    !text.contains(secret),
+                    "{}: the Debug output contains secret number {i}",
+                    c["name"]
+                );
+            }
+        }
+    }
+}
+
+#[test]
+fn the_protocol_version_constant_is_one() {
+    assert_eq!(commy_wire::PROTOCOL_VERSION, 1);
+}
