@@ -468,7 +468,6 @@
             "reason",
             "old_file_id",
             "new_file_id",
-            "generation",
             "size"
           ],
           "properties": {
@@ -493,10 +492,6 @@
               "type": "integer",
               "minimum": 0,
               "maximum": 4294967295
-            },
-            "generation": {
-              "type": "integer",
-              "minimum": 0
             },
             "size": {
               "type": "integer",

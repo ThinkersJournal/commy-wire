@@ -179,7 +179,6 @@
           "reason": "RESIZE",
           "old_file_id": 3,
           "new_file_id": 4,
-          "generation": 1,
           "size": 1048576
         }
       }
@@ -233,7 +232,6 @@
           "reason": "REVOCATION",
           "old_file_id": 4,
           "new_file_id": 5,
-          "generation": 2,
           "size": 4096
         }
       }
@@ -4812,7 +4810,7 @@
       }
     },
     {
-      "name": "rotation commit without generation",
+      "name": "rotation commit with a generation (removed in 0.5.0)",
       "json": {
         "type": "RotationCommit",
         "data": {
@@ -4821,6 +4819,7 @@
           "reason": "RESIZE",
           "old_file_id": 3,
           "new_file_id": 4,
+          "generation": 1,
           "size": 1048576
         }
       }

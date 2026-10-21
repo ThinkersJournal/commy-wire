@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.0 (breaking)
+- `RotationCommit` no longer carries `generation` (owner, board 235: Commy does not track how many times a service has been rotated; `new_file_id` is the handle, and what format a service uses is the service's to say). Removed from the struct, `schema/control.schema.json`, `spec/rotation.md` and the vectors; a `RotationCommit` that still has the field is refused (`deny_unknown_fields`), and a vector pins that.
+- Frame (1 MiB) and range-list (1024) limits unchanged.
+
 ## 0.4.1
 - Repository metadata only: `.github/CODEOWNERS` (CodeRipper WSP-001). No code, spec, schema or vector change.
 
