@@ -516,7 +516,6 @@ pub struct RotationCommit {
     pub reason: RotateReason,
     pub old_file_id: u32,
     pub new_file_id: u32,
-    pub generation: u64,
     pub size: u64,
 }
 

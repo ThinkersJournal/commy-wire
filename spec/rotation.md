@@ -15,7 +15,7 @@ offsets map between layouts.
 | `RotationFilled` | requester to server | `request_id`, `rotation_id` |
 | `RotationAbort` | requester to server | `request_id`, `rotation_id` |
 | `RotationAborted` | server to every member and the requester | `rotation_id`, `service_id`, `file_id`, `reason` |
-| `RotationCommit` | server to every SDK | `rotation_id`, `service_id`, `reason`, `old_file_id`, `new_file_id`, `generation`, `size` |
+| `RotationCommit` | server to every SDK | `rotation_id`, `service_id`, `reason`, `old_file_id`, `new_file_id`, `size` |
 | `Loss`           | server to one client | `service_id`, `file_id`, `kind`, optional `ranges` |
 
 ## Permissions (checked before anything is sent)
@@ -44,7 +44,7 @@ server never copies old bytes for a resize.
 5. A member that did not drain gets `Loss{kind: ROTATION_STRAGGLER}` and is dropped from the service.
    Anything it wrote to the old mapping afterwards is lost, never replayed.
 6. Each SDK fetches the new file with `GetServiceFilePath` (local) or `Resync` (remote), using
-   `new_file_id`. `generation` increases by one per rotation.
+   `new_file_id`. There is no rotation counter: `new_file_id` differs from `old_file_id` and is the only handle.
 
 **Abort.** If the requester sends `RotationAbort`, or sends nothing within `fill_ms` of
 `RotationPrepared`, the server discards the prepared file, keeps the old one live, and sends
