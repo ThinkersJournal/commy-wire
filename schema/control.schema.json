@@ -1024,6 +1024,363 @@
     {
       "properties": {
         "type": {
+          "const": "ReadAudit"
+        },
+        "data": {
+          "type": "object",
+          "required": [
+            "request_id"
+          ],
+          "properties": {
+            "request_id": {
+              "type": "string"
+            },
+            "after": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "AuditEvents"
+        },
+        "data": {
+          "type": "object",
+          "required": [
+            "request_id",
+            "entries",
+            "more"
+          ],
+          "properties": {
+            "request_id": {
+              "type": "string"
+            },
+            "entries": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "seq",
+                  "ts_ms",
+                  "line",
+                  "prev",
+                  "hash"
+                ],
+                "properties": {
+                  "seq": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "ts_ms": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "line": {
+                    "type": "string"
+                  },
+                  "prev": {
+                    "type": "string"
+                  },
+                  "hash": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "head": {
+              "type": "object",
+              "required": [
+                "seq",
+                "hash"
+              ],
+              "properties": {
+                "seq": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "hash": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            },
+            "more": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "CreateService"
+        },
+        "data": {
+          "type": "object",
+          "required": [
+            "tenant_id",
+            "service_name",
+            "size"
+          ],
+          "properties": {
+            "request_id": {
+              "type": "string"
+            },
+            "tenant_id": {
+              "type": "string"
+            },
+            "service_name": {
+              "type": "string"
+            },
+            "size": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "GetService"
+        },
+        "data": {
+          "type": "object",
+          "required": [
+            "tenant_id",
+            "service_name"
+          ],
+          "properties": {
+            "request_id": {
+              "type": "string"
+            },
+            "tenant_id": {
+              "type": "string"
+            },
+            "service_name": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "Service"
+        },
+        "data": {
+          "type": "object",
+          "required": [
+            "service_id",
+            "service_name",
+            "tenant_id"
+          ],
+          "properties": {
+            "request_id": {
+              "type": "string"
+            },
+            "service_id": {
+              "type": "string"
+            },
+            "service_name": {
+              "type": "string"
+            },
+            "tenant_id": {
+              "type": "string"
+            },
+            "size": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "DeleteService"
+        },
+        "data": {
+          "type": "object",
+          "required": [
+            "tenant_id",
+            "service_name"
+          ],
+          "properties": {
+            "request_id": {
+              "type": "string"
+            },
+            "tenant_id": {
+              "type": "string"
+            },
+            "service_name": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "CreateTenant"
+        },
+        "data": {
+          "type": "object",
+          "required": [
+            "tenant_id",
+            "tenant_name"
+          ],
+          "properties": {
+            "request_id": {
+              "type": "string"
+            },
+            "tenant_id": {
+              "type": "string"
+            },
+            "tenant_name": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "TenantResult"
+        },
+        "data": {
+          "type": "object",
+          "required": [
+            "success",
+            "tenant_id",
+            "message"
+          ],
+          "properties": {
+            "request_id": {
+              "type": "string"
+            },
+            "success": {
+              "type": "boolean"
+            },
+            "tenant_id": {
+              "type": "string"
+            },
+            "message": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "DeleteTenant"
+        },
+        "data": {
+          "type": "object",
+          "required": [
+            "tenant_id"
+          ],
+          "properties": {
+            "request_id": {
+              "type": "string"
+            },
+            "tenant_id": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "Result"
+        },
+        "data": {
+          "type": "object",
+          "required": [
+            "success",
+            "message"
+          ],
+          "properties": {
+            "request_id": {
+              "type": "string"
+            },
+            "success": {
+              "type": "boolean"
+            },
+            "message": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "Heartbeat"
+        },
+        "data": {
+          "type": "object",
+          "properties": {
+            "request_id": {
+              "type": "string"
+            },
+            "timestamp": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": true
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "Disconnect"
+        },
+        "data": {
+          "type": "object",
+          "properties": {
+            "request_id": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": true
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": {
           "const": "AuthenticationResult"
         },
         "data": {

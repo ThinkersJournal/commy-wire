@@ -741,6 +741,182 @@ pub struct LocalMappingAck {
     pub enabled: bool,
 }
 
+/// Client to server: create a service of `size` bytes (rounded up to whole pages by the server).
+/// Answered with `Service`. `request_id` is optional for compatibility with clients that predate it;
+/// when present the reply echoes it.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct CreateService {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub request_id: Option<String>,
+    pub tenant_id: String,
+    pub service_name: String,
+    pub size: u64,
+}
+
+/// Client to server: look a service up by name. Answered with `Service`, or `Error NOT_FOUND`.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct GetService {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub request_id: Option<String>,
+    pub tenant_id: String,
+    pub service_name: String,
+}
+
+/// Server to client: a service. The answer to `CreateService` (with `size`) and to `GetService`
+/// (without it).
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Service {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub request_id: Option<String>,
+    pub service_id: String,
+    pub service_name: String,
+    pub tenant_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub size: Option<u64>,
+}
+
+/// Client to server: delete a service by name. Answered with `Result`.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct DeleteService {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub request_id: Option<String>,
+    pub tenant_id: String,
+    pub service_name: String,
+}
+
+/// Client to server: create a tenant. Answered with `TenantResult`.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct CreateTenant {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub request_id: Option<String>,
+    pub tenant_id: String,
+    pub tenant_name: String,
+}
+
+/// Server to client: the answer to `CreateTenant`.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct TenantResult {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub request_id: Option<String>,
+    pub success: bool,
+    pub tenant_id: String,
+    pub message: String,
+}
+
+/// Client to server: delete a tenant with its services. Answered with `Result`.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct DeleteTenant {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub request_id: Option<String>,
+    pub tenant_id: String,
+}
+
+/// Server to client: the outcome of `DeleteService`, `DeleteTenant` or `Disconnect`. `request_id` is
+/// the request's when it had one. Servers before this version put a fresh random id here, so a
+/// client must match a `Result` only by an id it sent itself, never by presence.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct OpResult {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub request_id: Option<String>,
+    pub success: bool,
+    pub message: String,
+}
+
+/// Both directions: a keep-alive. The client sends it (no fields needed); the server answers with the
+/// same type carrying `timestamp` (RFC 3339) and the request's `request_id` if it had one. Unknown
+/// fields are ignored, as servers always have.
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Heartbeat {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub request_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub timestamp: Option<String>,
+}
+
+/// Client to server: end the session. Answered with `Result`. Unknown fields are ignored.
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Disconnect {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub request_id: Option<String>,
+}
+
+/// Most audit entries one `ReadAudit` returns; a larger `limit` is clamped to this, not refused.
+pub const MAX_AUDIT_LIMIT: u32 = 1000;
+/// Entries returned when `ReadAudit.limit` is absent.
+pub const DEFAULT_AUDIT_LIMIT: u32 = 100;
+
+/// Client to server: read the audit events that concern the caller's tenant, oldest first, with
+/// `seq` greater than `after`. Needs `tenant:admin`. `limit` defaults to [`DEFAULT_AUDIT_LIMIT`] and
+/// is clamped to [`MAX_AUDIT_LIMIT`]; `0` is refused. Answered with `AuditEvents`.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ReadAudit {
+    pub request_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub after: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub limit: Option<u32>,
+}
+
+impl ReadAudit {
+    /// Check the fields. A request that fails is answered `INVALID_REQUEST`.
+    pub fn validate(&self) -> Result<(), &'static str> {
+        if self.limit == Some(0) {
+            return Err("limit must be at least 1");
+        }
+        Ok(())
+    }
+
+    /// The number of entries to return: the default if absent, else clamped to [`MAX_AUDIT_LIMIT`].
+    pub fn effective_limit(&self) -> u32 {
+        self.limit
+            .unwrap_or(DEFAULT_AUDIT_LIMIT)
+            .min(MAX_AUDIT_LIMIT)
+    }
+}
+
+/// One audit event as stored. `hash` is recomputable from `(seq, ts_ms, prev, line)` (see
+/// `spec/audit.md`); `prev` is the `hash` of the event with `seq - 1`.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct AuditEntry {
+    pub seq: u64,
+    pub ts_ms: u64,
+    pub line: String,
+    pub prev: String,
+    pub hash: String,
+}
+
+/// The newest chained event of the whole log. It carries no tenant data: record it somewhere the
+/// server cannot write to notice a log that was cut short.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct AuditHead {
+    pub seq: u64,
+    pub hash: String,
+}
+
+/// Server to client: the answer to `ReadAudit`. `entries` are only events that concern the caller's
+/// tenant. `more` is true when `limit` cut the list. `head` is absent when the server has no chained
+/// event (or no persistence).
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct AuditEvents {
+    pub request_id: String,
+    pub entries: Vec<AuditEntry>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub head: Option<AuditHead>,
+    pub more: bool,
+}
+
 /// JSON control messages, sent as WebSocket text frames. Adjacently tagged
 /// (`{"type": ..., "data": {...}}`); unknown fields and unknown types are refused.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -777,4 +953,16 @@ pub enum ControlMessage {
     Grants(Grants),
     SetLocalMapping(SetLocalMapping),
     LocalMappingAck(LocalMappingAck),
+    ReadAudit(ReadAudit),
+    AuditEvents(AuditEvents),
+    CreateService(CreateService),
+    GetService(GetService),
+    Service(Service),
+    DeleteService(DeleteService),
+    CreateTenant(CreateTenant),
+    TenantResult(TenantResult),
+    DeleteTenant(DeleteTenant),
+    Result(OpResult),
+    Heartbeat(Heartbeat),
+    Disconnect(Disconnect),
 }
