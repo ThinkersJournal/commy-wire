@@ -12,6 +12,31 @@ Schema: `schema/control.schema.json`. Vectors: `vectors/control_messages.json`.
 | `ResyncDone`   | server to client | `request_id`, `file_id`, `seq`, `size`                                   |
 | `Error`        | server to client | `code`, `message`, optional `request_id`                                |
 
+The messages below are the service and tenant administration set, typed in this version from what
+servers already sent as untyped JSON. **Their `request_id` is optional**, because older clients omit
+it; a server echoes it in the reply when it was sent. A client that sends one can match the reply by it.
+
+| Type            | Direction        | Fields |
+|-----------------|------------------|--------|
+| `CreateService` | client to server | optional `request_id`, `tenant_id`, `service_name`, `size` (u64, bytes) |
+| `GetService`    | client to server | optional `request_id`, `tenant_id`, `service_name` |
+| `Service`       | server to client | optional `request_id`, `service_id`, `service_name`, `tenant_id`, optional `size` (present after `CreateService`) |
+| `DeleteService` | client to server | optional `request_id`, `tenant_id`, `service_name` |
+| `CreateTenant`  | client to server | optional `request_id`, `tenant_id`, `tenant_name` |
+| `TenantResult`  | server to client | optional `request_id`, `success`, `tenant_id`, `message` |
+| `DeleteTenant`  | client to server | optional `request_id`, `tenant_id` |
+| `Result`        | server to client | optional `request_id`, `success`, `message`: the answer to `DeleteService`, `DeleteTenant` and `Disconnect` |
+| `Heartbeat`     | both             | optional `request_id`; the server's reply adds `timestamp` (RFC 3339). Extra fields are ignored. |
+| `Disconnect`    | client to server | optional `request_id`. Extra fields are ignored. |
+
+Failures are `Error` (`NOT_FOUND`, `PERMISSION_DENIED`, `INVALID_REQUEST`). **Servers before this
+version put a fresh random `request_id` in `Result`**, so a client must match a `Result` only against an
+id it sent. These shapes are the existing ones (the reply tags `Service`, `Result`, `TenantResult` and
+`Heartbeat` are unchanged), so no current client breaks; a server keeps accepting requests without
+`request_id` past the layout freeze, and removing that is a later major version with its own notice.
+
+Reading the audit log (`ReadAudit`, `AuditEvents`) is in `audit.md`.
+
 ## Frame size and multi-frame flushes
 
 - A range frame carries at most **1 MiB** (1,048,576 bytes) of payload; a larger `len` is refused

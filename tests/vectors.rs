@@ -371,3 +371,19 @@ fn secrets_never_appear_in_debug_output() {
 fn the_protocol_version_constant_is_one() {
     assert_eq!(commy_wire::PROTOCOL_VERSION, 1);
 }
+
+#[test]
+fn read_audit_limit_is_defaulted_clamped_and_never_zero() {
+    use commy_wire::{ReadAudit, DEFAULT_AUDIT_LIMIT, MAX_AUDIT_LIMIT};
+    let r = |limit| ReadAudit {
+        request_id: "a".into(),
+        after: None,
+        limit,
+    };
+    assert_eq!(r(None).effective_limit(), DEFAULT_AUDIT_LIMIT);
+    assert_eq!(r(Some(5)).effective_limit(), 5);
+    assert_eq!(r(Some(u32::MAX)).effective_limit(), MAX_AUDIT_LIMIT);
+    assert!(r(Some(0)).validate().is_err());
+    assert!(r(Some(1)).validate().is_ok());
+    assert!(r(None).validate().is_ok());
+}

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.1 (commy R24 and R1; allocated by pm-assist 2026-11-16)
+- **Typed the service and tenant administration set** that servers already spoke as untyped JSON: `CreateService`, `GetService`, `Service`, `DeleteService`, `CreateTenant`, `TenantResult`, `DeleteTenant`, `Result` (`OpResult` in Rust), `Heartbeat`, `Disconnect`. Existing tags and field names are kept, so no current client breaks; `request_id` is optional on all of them and echoed in the reply when sent. Requests without it stay valid (vectors named `legacy:`), also past the freeze.
+- **`ReadAudit` / `AuditEvents`** (commy R24, `spec/audit.md`): a tenant administrator reads the audit events tagged with their own tenant; `limit` default 100, clamped to 1000.
+- Spec, schema and vectors for all of the above; the vectors and the schema agree in both directions (checked with a JSON Schema validator).
+
 ## 0.5.0 (breaking)
 - `RotationCommit` no longer carries `generation` (owner, board 235: Commy does not track how many times a service has been rotated; `new_file_id` is the handle, and what format a service uses is the service's to say). Removed from the struct, `schema/control.schema.json`, `spec/rotation.md` and the vectors; a `RotationCommit` that still has the field is refused (`deny_unknown_fields`), and a vector pins that.
 - Frame (1 MiB) and range-list (1024) limits unchanged.

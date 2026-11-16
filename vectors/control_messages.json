@@ -4726,6 +4726,241 @@
           "server_version": "0.15.0"
         }
       }
+    },
+    {
+      "name": "read audit, first page",
+      "json": {
+        "type": "ReadAudit",
+        "data": {
+          "request_id": "a1"
+        }
+      }
+    },
+    {
+      "name": "read audit after a sequence with a limit",
+      "json": {
+        "type": "ReadAudit",
+        "data": {
+          "request_id": "a2",
+          "after": 41,
+          "limit": 2
+        }
+      }
+    },
+    {
+      "name": "audit events with more and a head",
+      "json": {
+        "type": "AuditEvents",
+        "data": {
+          "request_id": "a2",
+          "entries": [
+            {
+              "seq": 42,
+              "ts_ms": 1760000000000,
+              "line": "grant GRANTED tenant=acme client=c1",
+              "prev": "0000",
+              "hash": "1111"
+            },
+            {
+              "seq": 45,
+              "ts_ms": 1760000001000,
+              "line": "rotation committed tenant=acme service=s1",
+              "prev": "2222",
+              "hash": "3333"
+            }
+          ],
+          "head": {
+            "seq": 90,
+            "hash": "9999"
+          },
+          "more": true
+        }
+      }
+    },
+    {
+      "name": "audit events, empty and no head",
+      "json": {
+        "type": "AuditEvents",
+        "data": {
+          "request_id": "a1",
+          "entries": [],
+          "more": false
+        }
+      }
+    },
+    {
+      "name": "legacy: create service (no request_id)",
+      "json": {
+        "type": "CreateService",
+        "data": {
+          "tenant_id": "acme",
+          "service_name": "svc",
+          "size": 65536
+        }
+      }
+    },
+    {
+      "name": "create service with request_id",
+      "json": {
+        "type": "CreateService",
+        "data": {
+          "request_id": "s1",
+          "tenant_id": "acme",
+          "service_name": "svc",
+          "size": 65536
+        }
+      }
+    },
+    {
+      "name": "legacy: get service",
+      "json": {
+        "type": "GetService",
+        "data": {
+          "tenant_id": "acme",
+          "service_name": "svc"
+        }
+      }
+    },
+    {
+      "name": "legacy: service reply after create",
+      "json": {
+        "type": "Service",
+        "data": {
+          "service_id": "svc-1",
+          "service_name": "svc",
+          "tenant_id": "acme",
+          "size": 65536
+        }
+      }
+    },
+    {
+      "name": "service reply after get, echoing request_id",
+      "json": {
+        "type": "Service",
+        "data": {
+          "request_id": "s2",
+          "service_id": "svc-1",
+          "service_name": "svc",
+          "tenant_id": "acme"
+        }
+      }
+    },
+    {
+      "name": "legacy: delete service",
+      "json": {
+        "type": "DeleteService",
+        "data": {
+          "tenant_id": "acme",
+          "service_name": "svc"
+        }
+      }
+    },
+    {
+      "name": "delete service with request_id",
+      "json": {
+        "type": "DeleteService",
+        "data": {
+          "request_id": "s3",
+          "tenant_id": "acme",
+          "service_name": "svc"
+        }
+      }
+    },
+    {
+      "name": "legacy: create tenant",
+      "json": {
+        "type": "CreateTenant",
+        "data": {
+          "tenant_id": "acme",
+          "tenant_name": "Acme"
+        }
+      }
+    },
+    {
+      "name": "legacy: tenant result",
+      "json": {
+        "type": "TenantResult",
+        "data": {
+          "success": true,
+          "tenant_id": "acme",
+          "message": "Tenant 'Acme' created"
+        }
+      }
+    },
+    {
+      "name": "legacy: delete tenant",
+      "json": {
+        "type": "DeleteTenant",
+        "data": {
+          "tenant_id": "acme"
+        }
+      }
+    },
+    {
+      "name": "delete tenant with request_id",
+      "json": {
+        "type": "DeleteTenant",
+        "data": {
+          "request_id": "t1",
+          "tenant_id": "acme"
+        }
+      }
+    },
+    {
+      "name": "legacy: result with a server-made request_id",
+      "json": {
+        "type": "Result",
+        "data": {
+          "request_id": "9f1c1c34-6a43-4a43-9f7a-0a5a4e6d7a10",
+          "success": true,
+          "message": "Service deleted"
+        }
+      }
+    },
+    {
+      "name": "result echoing the request's request_id",
+      "json": {
+        "type": "Result",
+        "data": {
+          "request_id": "s3",
+          "success": true,
+          "message": "Service deleted"
+        }
+      }
+    },
+    {
+      "name": "legacy: result without request_id",
+      "json": {
+        "type": "Result",
+        "data": {
+          "success": true,
+          "message": "Disconnected"
+        }
+      }
+    },
+    {
+      "name": "legacy: heartbeat",
+      "json": {
+        "type": "Heartbeat",
+        "data": {}
+      }
+    },
+    {
+      "name": "heartbeat reply",
+      "json": {
+        "type": "Heartbeat",
+        "data": {
+          "request_id": "h1",
+          "timestamp": "2026-11-16T18:00:00+00:00"
+        }
+      }
+    },
+    {
+      "name": "legacy: disconnect",
+      "json": {
+        "type": "Disconnect",
+        "data": {}
+      }
     }
   ],
   "invalid": [
@@ -5143,6 +5378,85 @@
           "message": "ok",
           "server_version": "0.15.0",
           "token": "leak"
+        }
+      }
+    },
+    {
+      "name": "read audit with an unknown field",
+      "json": {
+        "type": "ReadAudit",
+        "data": {
+          "request_id": "a3",
+          "tenant_id": "other"
+        }
+      }
+    },
+    {
+      "name": "read audit with a negative limit",
+      "json": {
+        "type": "ReadAudit",
+        "data": {
+          "request_id": "a4",
+          "limit": -1
+        }
+      }
+    },
+    {
+      "name": "audit events with an unknown entry field",
+      "json": {
+        "type": "AuditEvents",
+        "data": {
+          "request_id": "a5",
+          "entries": [
+            {
+              "seq": 1,
+              "ts_ms": 1,
+              "line": "x",
+              "prev": "",
+              "hash": "h",
+              "tenant": "acme"
+            }
+          ],
+          "more": false
+        }
+      }
+    },
+    {
+      "name": "create service without size",
+      "json": {
+        "type": "CreateService",
+        "data": {
+          "tenant_id": "acme",
+          "service_name": "svc"
+        }
+      }
+    },
+    {
+      "name": "create service with a negative size",
+      "json": {
+        "type": "CreateService",
+        "data": {
+          "tenant_id": "acme",
+          "service_name": "svc",
+          "size": -1
+        }
+      }
+    },
+    {
+      "name": "delete tenant without tenant_id",
+      "json": {
+        "type": "DeleteTenant",
+        "data": {
+          "request_id": "t2"
+        }
+      }
+    },
+    {
+      "name": "result without success",
+      "json": {
+        "type": "Result",
+        "data": {
+          "message": "x"
         }
       }
     }
