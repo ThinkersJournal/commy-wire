@@ -17,6 +17,8 @@ Licensed under MIT OR Apache-2.0.
 
 Typed (Rust type, JSON Schema, golden vectors, spec): everything in `spec/control-messages.md`, `spec/grants.md`, `spec/rotation.md` and `spec/audit.md`: authentication, flushes and ranges, resync, local mapping, rotation, grants, `ReadAudit` / `AuditEvents`, and the service and tenant administration set (`CreateService`, `GetService`, `Service`, `DeleteService`, `CreateTenant`, `TenantResult`, `DeleteTenant`, `Result`, `Heartbeat`, `Disconnect`).
 
+Naming: the administration replies keep their existing tags (`Service`, `Result`, `TenantResult`, `Heartbeat`) and gain an optional `request_id`; no `ServiceCreated` or `HeartbeatAck` rename, because a renamed reply tag breaks every current client (PM rule: old shapes stay accepted).
+
 Accepted legacy: requests from clients that predate `request_id` on the administration set (no `request_id`) stay valid; they are vectors in `vectors/control_messages.json` named `legacy: ...`. Removing them would be a later major version with its own notice.
 
 ## Status: layout unfrozen
