@@ -883,8 +883,8 @@ impl ReadAudit {
     }
 }
 
-/// One audit event as stored. `hash` is recomputable from `(seq, ts_ms, prev, line)` (see
-/// `spec/audit.md`); `prev` is the `hash` of the event with `seq - 1`.
+/// One audit event as stored. `hash` is recomputable by [`verify_audit_entry`] (see
+/// `spec/audit.md`; its prefix names the formula); `prev` is the `hash` of the event with `seq - 1`.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct AuditEntry {
@@ -916,7 +916,7 @@ fn audit_hex(digest: impl AsRef<[u8]>) -> String {
 pub fn audit_hash_v1(seq: u64, ts_ms: u64, prev: &str, line: &str) -> String {
     use sha2::{Digest, Sha256};
     let mut h = Sha256::new();
-    h.update(b"commy-audit-v1 ");
+    h.update(b"commy-audit-v1\0");
     h.update(seq.to_le_bytes());
     h.update(ts_ms.to_le_bytes());
     h.update((prev.len() as u64).to_le_bytes());
@@ -931,7 +931,7 @@ pub fn audit_hash_v1(seq: u64, ts_ms: u64, prev: &str, line: &str) -> String {
 pub fn audit_hash_v2(seq: u64, ts_ms: u64, prev: &str, tenant: Option<&str>, line: &str) -> String {
     use sha2::{Digest, Sha256};
     let mut h = Sha256::new();
-    h.update(b"commy-audit-v2 ");
+    h.update(b"commy-audit-v2\0");
     h.update(seq.to_le_bytes());
     h.update(ts_ms.to_le_bytes());
     h.update((prev.len() as u64).to_le_bytes());
