@@ -387,3 +387,39 @@ fn read_audit_limit_is_defaulted_clamped_and_never_zero() {
     assert!(r(Some(1)).validate().is_ok());
     assert!(r(None).validate().is_ok());
 }
+
+#[test]
+fn audit_hash_vectors_compute_and_verify() {
+    use commy_wire::{audit_hash_v1, audit_hash_v2, verify_audit_entry, AuditEntry, AuditHashError};
+    let v = load("audit_hash.json");
+    let compute = v["compute"].as_array().unwrap();
+    let verify = v["verify"].as_array().unwrap();
+    assert!(compute.len() >= 5 && verify.len() >= 9, "vectors went missing");
+    for c in compute {
+        let (seq, ts) = (c["seq"].as_u64().unwrap(), c["ts_ms"].as_u64().unwrap());
+        let (prev, line) = (c["prev"].as_str().unwrap(), c["line"].as_str().unwrap());
+        let got = match c["algo"].as_str().unwrap() {
+            "v1" => audit_hash_v1(seq, ts, prev, line),
+            "v2" => audit_hash_v2(seq, ts, prev, c["tenant"].as_str(), line),
+            other => panic!("unknown algo {other}"),
+        };
+        assert_eq!(got, c["hash"].as_str().unwrap(), "{}", c["name"]);
+    }
+    for c in verify {
+        let e = &c["entry"];
+        let entry = AuditEntry {
+            seq: e["seq"].as_u64().unwrap(),
+            ts_ms: e["ts_ms"].as_u64().unwrap(),
+            line: e["line"].as_str().unwrap().into(),
+            prev: e["prev"].as_str().unwrap().into(),
+            hash: e["hash"].as_str().unwrap().into(),
+        };
+        let got = match verify_audit_entry(&entry, c["tenant"].as_str()) {
+            Ok(()) => "ok",
+            Err(AuditHashError::Mismatch) => "mismatch",
+            Err(AuditHashError::UnsupportedVersion) => "unsupported",
+            Err(AuditHashError::NotChained) => "not_chained",
+        };
+        assert_eq!(got, c["result"].as_str().unwrap(), "{}", c["name"]);
+    }
+}

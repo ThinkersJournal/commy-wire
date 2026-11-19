@@ -1,0 +1,165 @@
+{
+  "description": "Audit hash vectors (spec/audit.md, Verification). Hashes are computed with Python hashlib from the spec text, not with the Rust code. 'compute' pins the formulas; 'verify' pins what a verifier answers (ok | mismatch | unsupported | not_chained). 'tenant' is the tenant the reader is verifying for (null: none).",
+  "compute": [
+    {
+      "name": "v1 first event",
+      "algo": "v1",
+      "seq": 1,
+      "ts_ms": 1700000000000,
+      "prev": "",
+      "tenant": null,
+      "line": "server started",
+      "hash": "e5286784083936b08f055e43a4ce3183c7c530e3a15f2635f6d110b5eb5201c9"
+    },
+    {
+      "name": "v1 chained",
+      "algo": "v1",
+      "seq": 2,
+      "ts_ms": 1700000001000,
+      "prev": "e5286784083936b08f055e43a4ce3183c7c530e3a15f2635f6d110b5eb5201c9",
+      "tenant": null,
+      "line": "authentication ACCEPTED client=alice tenant=acme",
+      "hash": "746d087ca95890a409a0d8daab5b74a7af39243e515f9e7a1ef08e80eb2629fc"
+    },
+    {
+      "name": "v2 tenant-tagged, prev is a v1 hash",
+      "algo": "v2",
+      "seq": 3,
+      "ts_ms": 1700000002000,
+      "prev": "746d087ca95890a409a0d8daab5b74a7af39243e515f9e7a1ef08e80eb2629fc",
+      "tenant": "acme",
+      "line": "grant service=orders client=bob",
+      "hash": "v2:b6afef7a6fcb2ca3b0585e1138d5a7dc31559eeafb4df5419c5e3b8dd1666253"
+    },
+    {
+      "name": "v2 server-wide (no tenant)",
+      "algo": "v2",
+      "seq": 4,
+      "ts_ms": 1700000003000,
+      "prev": "v2:b6afef7a6fcb2ca3b0585e1138d5a7dc31559eeafb4df5419c5e3b8dd1666253",
+      "tenant": null,
+      "line": "server-wide: certificate reloaded",
+      "hash": "v2:93c49b3defb595e9f7d63f24030efa711324313783c3ad575f427b398c32ff29"
+    },
+    {
+      "name": "v2 non-ASCII tenant and line (UTF-8 byte lengths)",
+      "algo": "v2",
+      "seq": 5,
+      "ts_ms": 1700000004000,
+      "prev": "v2:93c49b3defb595e9f7d63f24030efa711324313783c3ad575f427b398c32ff29",
+      "tenant": "día-ñ",
+      "line": "grant service=ünï client=bob",
+      "hash": "v2:3d037b90c3725a88e46320cb76b235a3dc5d1a25457ae70aaf94d849e365eb4b"
+    }
+  ],
+  "verify": [
+    {
+      "name": "v1 event verifies",
+      "entry": {
+        "seq": 2,
+        "ts_ms": 1700000001000,
+        "line": "authentication ACCEPTED client=alice tenant=acme",
+        "prev": "e5286784083936b08f055e43a4ce3183c7c530e3a15f2635f6d110b5eb5201c9",
+        "hash": "746d087ca95890a409a0d8daab5b74a7af39243e515f9e7a1ef08e80eb2629fc"
+      },
+      "tenant": "acme",
+      "result": "ok"
+    },
+    {
+      "name": "v2 event verifies under its own tenant",
+      "entry": {
+        "seq": 3,
+        "ts_ms": 1700000002000,
+        "line": "grant service=orders client=bob",
+        "prev": "746d087ca95890a409a0d8daab5b74a7af39243e515f9e7a1ef08e80eb2629fc",
+        "hash": "v2:b6afef7a6fcb2ca3b0585e1138d5a7dc31559eeafb4df5419c5e3b8dd1666253"
+      },
+      "tenant": "acme",
+      "result": "ok"
+    },
+    {
+      "name": "v2 event re-tagged to another tenant fails",
+      "entry": {
+        "seq": 3,
+        "ts_ms": 1700000002000,
+        "line": "grant service=orders client=bob",
+        "prev": "746d087ca95890a409a0d8daab5b74a7af39243e515f9e7a1ef08e80eb2629fc",
+        "hash": "v2:b6afef7a6fcb2ca3b0585e1138d5a7dc31559eeafb4df5419c5e3b8dd1666253"
+      },
+      "tenant": "globex",
+      "result": "mismatch"
+    },
+    {
+      "name": "v2 event with the tenant tag removed fails",
+      "entry": {
+        "seq": 3,
+        "ts_ms": 1700000002000,
+        "line": "grant service=orders client=bob",
+        "prev": "746d087ca95890a409a0d8daab5b74a7af39243e515f9e7a1ef08e80eb2629fc",
+        "hash": "v2:b6afef7a6fcb2ca3b0585e1138d5a7dc31559eeafb4df5419c5e3b8dd1666253"
+      },
+      "tenant": null,
+      "result": "mismatch"
+    },
+    {
+      "name": "v2 event with an edited line fails",
+      "entry": {
+        "seq": 3,
+        "ts_ms": 1700000002000,
+        "line": "grant service=orders client=eve",
+        "prev": "746d087ca95890a409a0d8daab5b74a7af39243e515f9e7a1ef08e80eb2629fc",
+        "hash": "v2:b6afef7a6fcb2ca3b0585e1138d5a7dc31559eeafb4df5419c5e3b8dd1666253"
+      },
+      "tenant": "acme",
+      "result": "mismatch"
+    },
+    {
+      "name": "v2 event copied to another seq fails",
+      "entry": {
+        "seq": 9,
+        "ts_ms": 1700000002000,
+        "line": "grant service=orders client=bob",
+        "prev": "746d087ca95890a409a0d8daab5b74a7af39243e515f9e7a1ef08e80eb2629fc",
+        "hash": "v2:b6afef7a6fcb2ca3b0585e1138d5a7dc31559eeafb4df5419c5e3b8dd1666253"
+      },
+      "tenant": "acme",
+      "result": "mismatch"
+    },
+    {
+      "name": "unknown version prefix is refused, not skipped",
+      "entry": {
+        "seq": 3,
+        "ts_ms": 1700000002000,
+        "line": "grant service=orders client=bob",
+        "prev": "746d087ca95890a409a0d8daab5b74a7af39243e515f9e7a1ef08e80eb2629fc",
+        "hash": "v3:b6afef7a6fcb2ca3b0585e1138d5a7dc31559eeafb4df5419c5e3b8dd1666253"
+      },
+      "tenant": "acme",
+      "result": "unsupported"
+    },
+    {
+      "name": "bare hex of the wrong length is refused",
+      "entry": {
+        "seq": 3,
+        "ts_ms": 1700000002000,
+        "line": "x",
+        "prev": "746d087ca95890a409a0d8daab5b74a7af39243e515f9e7a1ef08e80eb2629fc",
+        "hash": "b6afef7a6fcb2ca3b0585e1138d5a7dc31559eeafb4df5419c5e3b8dd16662"
+      },
+      "tenant": "acme",
+      "result": "unsupported"
+    },
+    {
+      "name": "empty hash is not chained",
+      "entry": {
+        "seq": 3,
+        "ts_ms": 1700000002000,
+        "line": "x",
+        "prev": "",
+        "hash": ""
+      },
+      "tenant": "acme",
+      "result": "not_chained"
+    }
+  ]
+}

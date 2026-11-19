@@ -895,6 +895,84 @@ pub struct AuditEntry {
     pub hash: String,
 }
 
+/// Why an audit entry did not verify (see `spec/audit.md`, Verification).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum AuditHashError {
+    /// The hash is well formed but is not the one the entry's fields produce.
+    Mismatch,
+    /// The hash names a formula this library does not know (or is not a hash at all). A verifier
+    /// **refuses** such an entry; it never skips it or treats it as verified.
+    UnsupportedVersion,
+    /// The entry carries no hash (written before the chain existed).
+    NotChained,
+}
+
+fn audit_hex(digest: impl AsRef<[u8]>) -> String {
+    digest.as_ref().iter().map(|b| format!("{b:02x}")).collect()
+}
+
+/// The `commy-audit-v1` hash: 64 lower-case hex digits, no prefix. It does **not** cover the
+/// event's tenant tag.
+pub fn audit_hash_v1(seq: u64, ts_ms: u64, prev: &str, line: &str) -> String {
+    use sha2::{Digest, Sha256};
+    let mut h = Sha256::new();
+    h.update(b"commy-audit-v1 ");
+    h.update(seq.to_le_bytes());
+    h.update(ts_ms.to_le_bytes());
+    h.update((prev.len() as u64).to_le_bytes());
+    h.update(prev.as_bytes());
+    h.update(line.as_bytes());
+    audit_hex(h.finalize())
+}
+
+/// The `commy-audit-v2` hash: `"v2:"` followed by 64 lower-case hex digits. Covers the tenant tag
+/// (`None` is one zero byte; `Some` is a one byte, the tag's byte length as u64 little endian, then
+/// the tag), placed after `prev` and before `line`.
+pub fn audit_hash_v2(seq: u64, ts_ms: u64, prev: &str, tenant: Option<&str>, line: &str) -> String {
+    use sha2::{Digest, Sha256};
+    let mut h = Sha256::new();
+    h.update(b"commy-audit-v2 ");
+    h.update(seq.to_le_bytes());
+    h.update(ts_ms.to_le_bytes());
+    h.update((prev.len() as u64).to_le_bytes());
+    h.update(prev.as_bytes());
+    match tenant {
+        None => h.update([0u8]),
+        Some(t) => {
+            h.update([1u8]);
+            h.update((t.len() as u64).to_le_bytes());
+            h.update(t.as_bytes());
+        }
+    }
+    h.update(line.as_bytes());
+    format!("v2:{}", audit_hex(h.finalize()))
+}
+
+fn is_hex64(s: &str) -> bool {
+    s.len() == 64 && s.bytes().all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+}
+
+/// Recompute `entry.hash`. The hash's own prefix picks the formula: bare 64 hex is v1, `v2:` plus
+/// 64 hex is v2, anything else is [`AuditHashError::UnsupportedVersion`] (never a guess).
+/// `tenant` is the tenant the entry is being verified for (a reader's own tenant); v1 ignores it.
+pub fn verify_audit_entry(entry: &AuditEntry, tenant: Option<&str>) -> Result<(), AuditHashError> {
+    if entry.hash.is_empty() {
+        return Err(AuditHashError::NotChained);
+    }
+    let want = if is_hex64(&entry.hash) {
+        audit_hash_v1(entry.seq, entry.ts_ms, &entry.prev, &entry.line)
+    } else if entry.hash.strip_prefix("v2:").is_some_and(is_hex64) {
+        audit_hash_v2(entry.seq, entry.ts_ms, &entry.prev, tenant, &entry.line)
+    } else {
+        return Err(AuditHashError::UnsupportedVersion);
+    };
+    if want == entry.hash {
+        Ok(())
+    } else {
+        Err(AuditHashError::Mismatch)
+    }
+}
+
 /// The newest chained event of the whole log. It carries no tenant data: record it somewhere the
 /// server cannot write to notice a log that was cut short.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
