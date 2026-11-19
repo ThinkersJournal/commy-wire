@@ -949,7 +949,9 @@ pub fn audit_hash_v2(seq: u64, ts_ms: u64, prev: &str, tenant: Option<&str>, lin
 }
 
 fn is_hex64(s: &str) -> bool {
-    s.len() == 64 && s.bytes().all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+    s.len() == 64
+        && s.bytes()
+            .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
 }
 
 /// Recompute `entry.hash`. The hash's own prefix picks the formula: bare 64 hex is v1, `v2:` plus

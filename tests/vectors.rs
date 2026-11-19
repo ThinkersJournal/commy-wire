@@ -390,11 +390,16 @@ fn read_audit_limit_is_defaulted_clamped_and_never_zero() {
 
 #[test]
 fn audit_hash_vectors_compute_and_verify() {
-    use commy_wire::{audit_hash_v1, audit_hash_v2, verify_audit_entry, AuditEntry, AuditHashError};
+    use commy_wire::{
+        audit_hash_v1, audit_hash_v2, verify_audit_entry, AuditEntry, AuditHashError,
+    };
     let v = load("audit_hash.json");
     let compute = v["compute"].as_array().unwrap();
     let verify = v["verify"].as_array().unwrap();
-    assert!(compute.len() >= 5 && verify.len() >= 9, "vectors went missing");
+    assert!(
+        compute.len() >= 5 && verify.len() >= 9,
+        "vectors went missing"
+    );
     for c in compute {
         let (seq, ts) = (c["seq"].as_u64().unwrap(), c["ts_ms"].as_u64().unwrap());
         let (prev, line) = (c["prev"].as_str().unwrap(), c["line"].as_str().unwrap());
