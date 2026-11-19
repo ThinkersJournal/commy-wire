@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased (commy R30; version to be allocated by the PM)
+## 0.5.2 (commy R30; allocated by pm-assist 2026-11-19)
 - **`commy-audit-v2` audit hash** (`spec/audit.md`, "Hash versions"): covers the event's tenant tag, so a tag can no longer be changed by someone who can write the store without breaking the chain. The `hash` string's own prefix names the formula (bare hex = v1, `v2:`... = v2); a verifier refuses an unknown prefix, never skips it. v1 events keep verifying. Added `audit_hash_v1`, `audit_hash_v2`, `verify_audit_entry`, `AuditHashError`, and `vectors/audit_hash.json` (v1, v2, negative); new dependency `sha2`. Additive for the message types.
 - **This minor must land before the R1 freeze**: it adds a hash formula the freeze would otherwise pin without the tag. Every SDK needs a [NOTICE] when it is cut.
 
