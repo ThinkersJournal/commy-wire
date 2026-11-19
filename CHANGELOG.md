@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.2 (commy R30; allocated by pm-assist 2026-11-19)
+- **`commy-audit-v2` audit hash** (`spec/audit.md`, "Hash versions"): covers the event's tenant tag, so a tag can no longer be changed by someone who can write the store without breaking the chain. The `hash` string's own prefix names the formula (bare hex = v1, `v2:`... = v2); a verifier refuses an unknown prefix, never skips it. v1 events keep verifying. Added `audit_hash_v1`, `audit_hash_v2`, `verify_audit_entry`, `AuditHashError`, and `vectors/audit_hash.json` (v1, v2, negative); new dependency `sha2`. Additive for the message types.
+- **This minor must land before the R1 freeze**: it adds a hash formula the freeze would otherwise pin without the tag. Every SDK needs a [NOTICE] when it is cut.
+
 ## 0.5.1 (commy R24 and R1; allocated by pm-assist 2026-11-16)
 - **Typed the service and tenant administration set** that servers already spoke as untyped JSON: `CreateService`, `GetService`, `Service`, `DeleteService`, `CreateTenant`, `TenantResult`, `DeleteTenant`, `Result` (`OpResult` in Rust), `Heartbeat`, `Disconnect`. Existing tags and field names are kept, so no current client breaks; `request_id` is optional on all of them and echoed in the reply when sent. Requests without it stay valid (vectors named `legacy:`), also past the freeze.
 - **`ReadAudit` / `AuditEvents`** (commy R24, `spec/audit.md`): a tenant administrator reads the audit events tagged with their own tenant; `limit` default 100, clamped to 1000.
