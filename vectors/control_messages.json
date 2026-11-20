@@ -4651,6 +4651,19 @@
       }
     },
     {
+      "name": "authenticate with the connection's client certificate (mtls)",
+      "json": {
+        "type": "Authenticate",
+        "data": {
+          "request_id": "a1",
+          "protocol_version": 1,
+          "tenant_id": "acme",
+          "client_version": "0.10.2",
+          "method": "mtls"
+        }
+      }
+    },
+    {
       "name": "authenticate with custom data",
       "json": {
         "type": "Authenticate",
@@ -4964,6 +4977,80 @@
     }
   ],
   "invalid": [
+    {
+      "name": "mtls method with a password beside it (two methods)",
+      "json": {
+        "type": "Authenticate",
+        "data": {
+          "request_id": "a1",
+          "protocol_version": 1,
+          "tenant_id": "acme",
+          "client_version": "0.10.2",
+          "method": "mtls",
+          "password": "pw"
+        }
+      }
+    },
+    {
+      "name": "api_key method with a jwt token beside it (two methods)",
+      "json": {
+        "type": "Authenticate",
+        "data": {
+          "request_id": "a1",
+          "protocol_version": 1,
+          "tenant_id": "acme",
+          "client_version": "0.10.2",
+          "method": "api_key",
+          "key": "k",
+          "token": "t"
+        }
+      }
+    },
+    {
+      "name": "basic method with an api key beside it (two methods)",
+      "json": {
+        "type": "Authenticate",
+        "data": {
+          "request_id": "a1",
+          "protocol_version": 1,
+          "tenant_id": "acme",
+          "client_version": "0.10.2",
+          "method": "basic",
+          "username": "alice",
+          "password": "pw",
+          "key": "k"
+        }
+      }
+    },
+    {
+      "name": "api_key method with a field no method defines",
+      "json": {
+        "type": "Authenticate",
+        "data": {
+          "request_id": "a1",
+          "protocol_version": 1,
+          "tenant_id": "acme",
+          "client_version": "0.10.2",
+          "method": "api_key",
+          "key": "k",
+          "extra": 1
+        }
+      }
+    },
+    {
+      "name": "mtls method with a custom data field beside it",
+      "json": {
+        "type": "Authenticate",
+        "data": {
+          "request_id": "a1",
+          "protocol_version": 1,
+          "tenant_id": "acme",
+          "client_version": "0.10.2",
+          "method": "mtls",
+          "data": {}
+        }
+      }
+    },
     {
       "name": "flush ack with negative seq",
       "json": {

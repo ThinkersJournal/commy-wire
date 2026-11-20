@@ -166,6 +166,11 @@ pub enum Credentials {
     /// Anything a custom verifier on the server understands.
     #[serde(rename = "custom")]
     Custom { data: serde_json::Value },
+    /// "Use the client certificate of this TLS connection": the credential is the certificate the
+    /// handshake already verified, so the message carries nothing. A server that verified no
+    /// certificate on the connection refuses it. See `spec/control-messages.md`, Authentication.
+    #[serde(rename = "mtls")]
+    Mtls,
 }
 
 impl std::fmt::Debug for Credentials {
@@ -185,6 +190,7 @@ impl std::fmt::Debug for Credentials {
                 .debug_struct("Custom")
                 .field("data", &"<redacted>")
                 .finish(),
+            Credentials::Mtls => f.write_str("Mtls"),
         }
     }
 }
@@ -197,6 +203,7 @@ impl Credentials {
             Credentials::Jwt { .. } => "jwt",
             Credentials::Basic { .. } => "basic",
             Credentials::Custom { .. } => "custom",
+            Credentials::Mtls => "mtls",
         }
     }
 }
@@ -206,8 +213,13 @@ impl Credentials {
 /// `client_id` is a **hint for development servers only**: a production server takes the client's
 /// identity from the credential (its subject) and ignores or refuses a self-claimed one. `dev_scopes`
 /// is likewise development-only: ask for exactly these scopes (`[]` for none) instead of administrator.
-/// Unknown fields are ignored, because the credential fields are flattened next to the others.
+///
+/// **Exactly one method, no strays.** The credential fields sit beside the others in the JSON, so a
+/// derived parser would ignore what it does not know. This one does not: a request that names one
+/// method but carries a field that method does not define (a second method's secret, or any unknown
+/// field) is refused at parse time (`INVALID_REQUEST`), never resolved by silently picking one.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(try_from = "serde_json::Value")]
 pub struct Authenticate {
     pub request_id: String,
     pub protocol_version: u32,
@@ -220,6 +232,69 @@ pub struct Authenticate {
     pub dev_scopes: Option<Vec<String>>,
     #[serde(flatten)]
     pub credentials: Credentials,
+}
+
+/// The lenient shape of [`Authenticate`], used after its fields have been checked by hand.
+#[derive(Deserialize)]
+struct RawAuthenticate {
+    request_id: String,
+    protocol_version: u32,
+    tenant_id: String,
+    #[serde(default)]
+    client_version: Option<String>,
+    #[serde(default)]
+    client_id: Option<String>,
+    #[serde(default)]
+    dev_scopes: Option<Vec<String>>,
+    #[serde(flatten)]
+    credentials: Credentials,
+}
+
+impl TryFrom<serde_json::Value> for Authenticate {
+    type Error = String;
+
+    fn try_from(v: serde_json::Value) -> Result<Self, String> {
+        const COMMON: [&str; 7] = [
+            "request_id",
+            "protocol_version",
+            "tenant_id",
+            "client_version",
+            "client_id",
+            "dev_scopes",
+            "method",
+        ];
+        let obj = v.as_object().ok_or("Authenticate must be a JSON object")?;
+        let method = obj
+            .get("method")
+            .and_then(|m| m.as_str())
+            .ok_or("Authenticate needs a string `method`")?;
+        let own: &[&str] = match method {
+            "api_key" => &["key"],
+            "jwt" => &["token"],
+            "basic" => &["username", "password"],
+            "custom" => &["data"],
+            "mtls" => &[],
+            other => return Err(format!("unknown credential method `{other}`")),
+        };
+        if let Some(stray) = obj
+            .keys()
+            .find(|k| !COMMON.contains(&k.as_str()) && !own.contains(&k.as_str()))
+        {
+            return Err(format!(
+                "field `{stray}` is not defined for method `{method}` (one method per request, no unknown fields)"
+            ));
+        }
+        let raw: RawAuthenticate = serde_json::from_value(v).map_err(|e| e.to_string())?;
+        Ok(Authenticate {
+            request_id: raw.request_id,
+            protocol_version: raw.protocol_version,
+            tenant_id: raw.tenant_id,
+            client_version: raw.client_version,
+            client_id: raw.client_id,
+            dev_scopes: raw.dev_scopes,
+            credentials: raw.credentials,
+        })
+    }
 }
 
 impl Authenticate {
