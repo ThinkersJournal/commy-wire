@@ -76,7 +76,19 @@
               },
               "required": [
                 "key"
-              ]
+              ],
+              "propertyNames": {
+                "enum": [
+                  "request_id",
+                  "protocol_version",
+                  "tenant_id",
+                  "client_version",
+                  "client_id",
+                  "dev_scopes",
+                  "method",
+                  "key"
+                ]
+              }
             },
             {
               "properties": {
@@ -86,7 +98,19 @@
               },
               "required": [
                 "token"
-              ]
+              ],
+              "propertyNames": {
+                "enum": [
+                  "request_id",
+                  "protocol_version",
+                  "tenant_id",
+                  "client_version",
+                  "client_id",
+                  "dev_scopes",
+                  "method",
+                  "token"
+                ]
+              }
             },
             {
               "properties": {
@@ -97,7 +121,20 @@
               "required": [
                 "username",
                 "password"
-              ]
+              ],
+              "propertyNames": {
+                "enum": [
+                  "request_id",
+                  "protocol_version",
+                  "tenant_id",
+                  "client_version",
+                  "client_id",
+                  "dev_scopes",
+                  "method",
+                  "username",
+                  "password"
+                ]
+              }
             },
             {
               "properties": {
@@ -107,13 +144,36 @@
               },
               "required": [
                 "data"
-              ]
+              ],
+              "propertyNames": {
+                "enum": [
+                  "request_id",
+                  "protocol_version",
+                  "tenant_id",
+                  "client_version",
+                  "client_id",
+                  "dev_scopes",
+                  "method",
+                  "data"
+                ]
+              }
             },
             {
               "properties": {
                 "method": {
                   "const": "mtls"
                 }
+              },
+              "propertyNames": {
+                "enum": [
+                  "request_id",
+                  "protocol_version",
+                  "tenant_id",
+                  "client_version",
+                  "client_id",
+                  "dev_scopes",
+                  "method"
+                ]
               }
             }
           ]
