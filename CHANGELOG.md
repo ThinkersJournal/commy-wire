@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased (commy R25; **Breaking**, version to be allocated by pm-assist; before the R1 freeze)
+- **Breaking: `Credentials::Mtls`** (`method: "mtls"`, no fields): the connection's verified TLS client certificate is the credential. `Credentials` is not `#[non_exhaustive]`, so an exhaustive `match` in a consumer stops compiling (the SDKs); on the wire an older server answers an unknown `method` with `INVALID_REQUEST`. Spec (Authentication), schema, a positive vector (the existing Authenticate vector count goes from 6 to 7). Nothing else changes; `Credentials::method()` returns `"mtls"`.
+
 ## 0.5.2 (commy R30; allocated by pm-assist 2026-11-19)
 - **`commy-audit-v2` audit hash** (`spec/audit.md`, "Hash versions"): covers the event's tenant tag, so a tag can no longer be changed by someone who can write the store without breaking the chain. The `hash` string's own prefix names the formula (bare hex = v1, `v2:`... = v2); a verifier refuses an unknown prefix, never skips it. v1 events keep verifying. Added `audit_hash_v1`, `audit_hash_v2`, `verify_audit_entry`, `AuditHashError`, and `vectors/audit_hash.json` (v1, v2, negative); new dependency `sha2`. Additive for the message types.
 - **This minor must land before the R1 freeze**: it adds a hash formula the freeze would otherwise pin without the tag. Every SDK needs a [NOTICE] when it is cut.

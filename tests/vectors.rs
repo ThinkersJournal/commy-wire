@@ -341,7 +341,7 @@ fn consistent_authenticate_requests_pass_validation() {
             checked += 1;
         }
     }
-    assert_eq!(checked, 6);
+    assert_eq!(checked, 7);
 }
 
 #[test]

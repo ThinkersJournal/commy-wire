@@ -49,7 +49,8 @@
                 "api_key",
                 "jwt",
                 "basic",
-                "custom"
+                "custom",
+                "mtls"
               ]
             },
             "key": {
@@ -107,6 +108,13 @@
               "required": [
                 "data"
               ]
+            },
+            {
+              "properties": {
+                "method": {
+                  "const": "mtls"
+                }
+              }
             }
           ]
         }

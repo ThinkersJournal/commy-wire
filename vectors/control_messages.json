@@ -4651,6 +4651,19 @@
       }
     },
     {
+      "name": "authenticate with the connection's client certificate (mtls)",
+      "json": {
+        "type": "Authenticate",
+        "data": {
+          "request_id": "a1",
+          "protocol_version": 1,
+          "tenant_id": "acme",
+          "client_version": "0.10.2",
+          "method": "mtls"
+        }
+      }
+    },
+    {
       "name": "authenticate with custom data",
       "json": {
         "type": "Authenticate",

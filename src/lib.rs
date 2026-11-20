@@ -166,6 +166,11 @@ pub enum Credentials {
     /// Anything a custom verifier on the server understands.
     #[serde(rename = "custom")]
     Custom { data: serde_json::Value },
+    /// "Use the client certificate of this TLS connection": the credential is the certificate the
+    /// handshake already verified, so the message carries nothing. A server that verified no
+    /// certificate on the connection refuses it. See `spec/control-messages.md`, Authentication.
+    #[serde(rename = "mtls")]
+    Mtls,
 }
 
 impl std::fmt::Debug for Credentials {
@@ -185,6 +190,7 @@ impl std::fmt::Debug for Credentials {
                 .debug_struct("Custom")
                 .field("data", &"<redacted>")
                 .finish(),
+            Credentials::Mtls => f.write_str("Mtls"),
         }
     }
 }
@@ -197,6 +203,7 @@ impl Credentials {
             Credentials::Jwt { .. } => "jwt",
             Credentials::Basic { .. } => "basic",
             Credentials::Custom { .. } => "custom",
+            Credentials::Mtls => "mtls",
         }
     }
 }
