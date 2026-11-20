@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased (commy R25; **Breaking**, version to be allocated by pm-assist; before the R1 freeze)
+## 0.6.0 (commy R25; **Breaking**: `Credentials` no longer `non_exhaustive`, `Credentials::Mtls`; allocated by pm-assist 2026-11-20; before the R1 freeze)
 - **Breaking: `Credentials::Mtls`** (`method: "mtls"`, no fields): the connection's verified TLS client certificate is the credential. `Credentials` is not `#[non_exhaustive]`, so an exhaustive `match` in a consumer stops compiling (the SDKs); on the wire an older server answers an unknown `method` with `INVALID_REQUEST`. Spec (Authentication), schema, a positive vector (the existing Authenticate vector count goes from 6 to 7). Nothing else changes; `Credentials::method()` returns `"mtls"`.
 
 ## 0.5.2 (commy R30; allocated by pm-assist 2026-11-19)
